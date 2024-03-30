@@ -1,29 +1,86 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import Select from 'react-select';
+import { toast } from 'react-toastify';
+
 const URL_SERV = 'http://localhost:3000';
 
 const AddUserToCampaign = () => {
     
       const [userId, setUserId] = useState('');
+      const [errors, setErrors] = useState('');
+      const [userIds, setUserIds] = useState([]);  //array of user ids that are already in the campaign.
+      const [selectedUserIds, setSelectedUserIds] = useState([]);
+      const [assignedUsers, setAssignedUsers] = useState([]); 
       const {campaignId} = useParams();
     
+      const userIdRegex = /^[a-z0-9]{24}$/;
+
+      useEffect(() => {
+        const fetchUserIds = async () => {
+          try {
+            const response = await fetch(`${URL_SERV}/users`);
+            if (response.ok) {
+              const data = await response.json();
+              setUserIds(data.userIds);
+            } else {
+              throw new Error('Failed to fetch user IDs');
+            }
+          } catch (error) {
+            console.error('Error fetching user IDs:', error);
+          }
+        };
+        fetchUserIds();
+      }, []);
+
+      
+      useEffect(() => {
+        const fetchAssignedUsers = async () => {
+            try {
+                const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignedUsers`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setAssignedUsers(data.assignedUsers);
+                } else {
+                    throw new Error('Failed to fetch assigned users');
+                }
+            } catch (error) {
+                console.error('Error fetching assigned users:', error);
+            }
+        };
+        fetchAssignedUsers();
+      }, [campaignId]);
+
+      const handleChange = (selectedOptions) => {
+        setSelectedUserIds(selectedOptions.map(option => option.value));
+      };
+
       const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+          await Promise.all(selectedUserIds.map(async (userId) => {
           const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignUser/${userId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            // body: JSON.stringify({ userId: userId }),
           });
-          // if (!response.ok) { throw new Error('Server response not ok'); }
-          //   const data = await response.json();
+          if(response.ok){
             console.log('User added successfully');
+            toast.success('User added successfully');
+           
+          }else{
+            throw new Error('Server error');
+          }
+          }));
+          setSelectedUserIds([]); 
         } catch (error) {
           console.error('failed to add user:', error);
+          toast.error('failed to add user');
         }
       };
+
+      const filteredUserIds = userIds.filter(id => !assignedUsers.includes(id));
     
       return (
         <div className="container mt-5">
@@ -34,17 +91,20 @@ const AddUserToCampaign = () => {
                 <div className="card-body">
                   <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                      <label htmlFor="userId">User ID:</label>
-                      <input
-                        type="text"
-                        className="form-control"
+                      <label htmlFor="userId">User IDs:</label>
+                      <Select
+                        className={`form-control ${errors && 'is-invalid'}`}
                         id="userId"
-                        value={userId}
-                        onChange={(e) => setUserId(e.target.value)}
+                        name="userId"
+                        value={selectedUserIds.map(id => ({ value: id, label: id }))}
+                        onChange={handleChange}
+                        options={filteredUserIds.map(userId => ({ value: userId, label: userId }))}
                         required
+                        isMulti
                       />
+                      {errors && <div className="invalid-feedback">{errors}</div>}
                     </div>
-                    <button type="submit" className="btn btn-primary">Add User</button>
+                    <button type="submit" className="btn btn-orange">Add User</button>
                   </form>
                 </div>
               </div>

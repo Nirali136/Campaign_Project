@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-const UpdateCampaign = ({ campaigns, onEdit, onAddUser, onDelete, onRemoveUser }) => {
+const UpdateCampaign = ({ campaigns, onEdit, onDelete }) => {
 
+  const maxLength = 15;
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -11,13 +12,14 @@ const UpdateCampaign = ({ campaigns, onEdit, onAddUser, onDelete, onRemoveUser }
             <div
               key={campaign._id}
               className="card mt-3"
+              style={{ position: "relative" }}
             >
               <div className="card-header">{campaign.title}</div>
               <div className="card-body">
                 <p className="card-text"><strong>Type:</strong> {campaign.type}</p>
-                <p className="card-text"><strong>Image URL:</strong> {campaign.imageUrl}</p>
-                <p className="card-text"><strong>Description:</strong> {campaign.description}</p>
-                <Link to={`/campaign/${campaign._id}`} className="btn btn-primary mr-2" onClick={()=>onEdit(campaign._id)}>Edit</Link>
+                <p className="card-text"><strong>Image:</strong> {campaign.imageUrl}</p>
+                <p className="card-text"><strong>Description:</strong> {campaign.description.length > maxLength ? campaign.description.substring(0, maxLength) + '...' : campaign.description}</p>
+                <Link to={`/campaign/${campaign._id}`} className="btn btn-orange mr-2" onClick={()=>onEdit(campaign._id)}>Edit</Link>
                 <button className="btn btn-danger" onClick={() => onDelete(campaign._id)}>Delete</button>
                 {campaign.type === 'private' && (
                 <>
@@ -25,8 +27,7 @@ const UpdateCampaign = ({ campaigns, onEdit, onAddUser, onDelete, onRemoveUser }
                   <Link to={`/campaign/${campaign._id}/removeUser`}className="btn btn-warning mr-2">Remove User</Link>
                 </>
                 )}
-                {/* </>
-                )} */}
+                <Link to={`/campaigndetails/${campaign._id}`} className="btn btn-orange" style={{ position: "absolute", bottom: "10px", right: "10px" }}>View Details</Link>
               </div>
             </div>
           ))}

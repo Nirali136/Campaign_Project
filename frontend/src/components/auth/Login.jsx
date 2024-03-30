@@ -1,12 +1,10 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-
-const URL_SERV = 'http://localhost:3000';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const Login =  () => {
-
-    const { login } = useAuth();
+    const { login } = useAuth(); 
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
@@ -60,20 +58,18 @@ const Login =  () => {
         }
     if (formIsValid) {
       try {
-        const response = await fetch(`${URL_SERV}/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-          const data = await response.json();
-          console.log('User logged in:', data);
-          login();
-          navigate('/');
-      } catch (err) {
-        console.error('Error logged in user:', err);
-      }
+        await login(formData.email, formData.password);
+        navigate('/');
+    } catch (err) {
+        console.error('Error logging in user:', err);
+        if (err.response && err.response.data && err.response.data.errors) {
+          err.response.data.errors.forEach(error => {
+            toast.error(error.msg);
+          });
+        } else {
+          console.log('An error occurred while logging in.');
+        }
+    }
     }
     };
 
@@ -94,6 +90,7 @@ const Login =  () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    maxLength={30}
                     required
                   />
                   {errors.email && <div className="invalid-feedback">{errors.email}</div>}
@@ -107,14 +104,15 @@ const Login =  () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
+                    maxLength={15}
                     required
                   />
                   {errors.password && <div className="invalid-feedback">{errors.password}</div>}
                 </div>
-                <button type="submit" className="btn btn-primary">Login</button>
+                <button type="submit" className="btn btn-orange">Login</button>
               </form>
               <div className="forgot-password">
-                <a href="#">Forgot Password?</a>
+              <Link to={`/forgotPassword`}>Forgot Password?</Link>
               </div>
             </div>
           </div>

@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { render } from "react-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import Select from "react-select";
+
+const URL_SERV = 'http://localhost:3000';
 
 const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUpdate}) => {
 
   const { id } = useParams();
  const [initialFormData, setInitialFormData] = useState({...formData});
+ const [imageFile, setImageFile] = useState([]);
  const [errors, setErrors] = useState({});
+ const [userIds, setUserIds] = useState([]);
+ const [selectedUserIds, setSelectedUserIds] = useState([]);
  const navigate = useNavigate();
+ const location = useLocation();
 
- // const campaign = campaigns.find(campaign => campaign._id === id);
-
-  //const initialFormData = editing && campaign ? campaign : formData;
   useEffect(() => {
     if (editing && campaigns.length > 0) {
       const campaign = campaigns.find(campaign => campaign._id === id);
@@ -20,19 +25,58 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
     } else {
       setInitialFormData({ ...formData });
     }
+
+    // if (location.pathname.includes("createcampaign")) {
+    //   onUpdate(false); // Call the onUpdate function to update editing state
+    // }
+
   }, [campaigns, formData, editing, id]);
+
+  useEffect(() => {
+    const fetchUserIds = async () => {
+      try {
+        const response = await fetch(`${URL_SERV}/users`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserIds(data.userIds);
+        } else {
+          throw new Error('Failed to fetch user IDs');
+        }
+      } catch (error) {
+        console.error('Error fetching user IDs:', error);
+      }
+    };
+    fetchUserIds();
+    
+  }, []);
+
+  const handleImageUpload = async (e) => {
+     const files = Array.from(e.target.files);
+     if(files.length > 5){
+      e.preventDefault();
+      alert(`Cannot upload files more than 5`);
+      return;
+     }
+     setImageFile(files);
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if(editing){
-        setInitialFormData({
-          ...initialFormData,
-          [name]: value
-      });
+    if(editing && name === "type" && value === "public"){
+    setInitialFormData({ ...initialFormData, [name]: value});
+    
     }else{
-        onChange(e);
+      setInitialFormData({...initialFormData, [name]:value});
+      //onChange(e);
     }
+    // Validate the changed field
     validateField(name, value);
+  };
+
+  const handleSelectChange = (selectedOptions) => {
+    const selectedIds = selectedOptions.map(option => option.value);
+    setSelectedUserIds(selectedIds); 
+    setInitialFormData({ ...initialFormData, assignedUsers: selectedIds });
   };
 
   const validateField = (name, value) => {
@@ -43,11 +87,20 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
           errorMessage = 'Title must be at least 3 characters long';
         }
         break;
-      case  'imageUrl':
-        if (!/^https?:\/\//i.test(value)) {
-          errorMessage = "Image URL must start with 'http://' or 'https://'"; 
+      case "imageUrl":
+        const allowedExtensions = ["jpg", "jpeg", "png"];
+        const fileSizeLimit = 5 * 1024 * 1024; // 5 MB limit
+        if (!value) {
+          errorMessage = "Please select an image";
+        } else {
+          const fileExtension = value && value.name ? value.name.split(".").pop().toLowerCase() : '';
+          if (!allowedExtensions.includes(fileExtension)) {
+            errorMessage = "Only JPG, JPEG or PNG files are allowed";
+          } else if (value.size > fileSizeLimit) {
+            errorMessage = "File size exceeds 5MB limit";
+          }
         }
-        break;
+      break;
       case 'description':
         if (value.trim().length < 8) {
           errorMessage = 'Description must be at least 8 characters long';
@@ -55,14 +108,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
           errorMessage = 'Description must be at most 200 characters long';
         }
         break;
-      case 'assignedUsers':
-        const userIdRegex = /^[a-z0-9]{24}$/;
-        if (!userIdRegex.test(value)) {
-          errorMessage = 'Assigned user ID must be 24 characters long and contain only lowercase letters (a-z) and digits (0-9)';
-        }
-        break;
       default:
-        errorMessage = 'filed is required'
         break;
     }
     setErrors({
@@ -72,7 +118,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
   };
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit =async (e) => {
     e.preventDefault();
     let formIsValid = true;
     for (const key in initialFormData) {
@@ -83,14 +129,33 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
         }
       }
     }
-    if(formIsValid){
-    if (editing) {
-      onUpdate(initialFormData,initialFormData._id);
-      navigate(`/updatecampaign`,{replace: true} );
-    } else {
-      onSubmit(e);
-      navigate(`/campaigns`, {replace: true });
+
+    if (imageFile && errors["imageUrl"]) {
+      console.log('imagefile',imageFile);
+      formIsValid = false;
     }
+
+    if (imageFile.length === 0) {
+      setErrors({ ...errors, imageUrl: "Please select at least one image" });
+      formIsValid = false;
+    }
+  
+    if(formIsValid){
+      const formDataWithImage = new FormData();
+      const { imageUrl, ...formDataWithoutImage } = initialFormData;
+      for (const key in formDataWithoutImage) {
+        formDataWithImage.append(key, initialFormData[key]);
+      }
+      imageFile.forEach((file)=> {
+        formDataWithImage.append( "imageUrl" , file );
+      })
+      // formDataWithImage.append("imageUrl", imageFile);
+    if (editing) {
+      await onUpdate(formDataWithImage,initialFormData._id); 
+    } else {
+      await onSubmit(e, formDataWithImage);
+    }
+    navigate('/campaigns', { replace: true });
   }
   };
   return (
@@ -102,7 +167,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
             {editing ? 'Edit Campaign' : 'Create Campaign'}
             </div>
             <div className="card-body">
-              <form onSubmit={handleSubmit} noValidate>
+              <form onSubmit={handleSubmit}>
                 <div className="form-group">
                   <label htmlFor="title">Title</label>
                   <input
@@ -112,6 +177,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                     name="title"
                     value={initialFormData.title}
                     onChange={handleChange}
+                    maxLength={30}
                     required
                   />
                   {errors.title && <div className="invalid-feedback">{errors.title}</div>}
@@ -131,17 +197,18 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="imageUrl">Image URL</label>
+                  <label htmlFor="image">Image</label><br/>
                   <input
-                    type="text"
-                    className={`form-control ${errors.imageUrl && 'is-invalid'}`}
+                    type="file"
+                    className={`form-control ${errors.imageUrl && "is-invalid"}`}
                     id="imageUrl"
                     name="imageUrl"
-                    value={initialFormData.imageUrl}
-                    onChange={handleChange}
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    multiple
                     required
                   />
-                   {errors.imageUrl && <div className="invalid-feedback">{errors.imageUrl}</div>}
+                  {errors.imageUrl && <div className="invalid-feedback">{errors.imageUrl}</div>}
                 </div>
                 <div className="form-group">
                   <label htmlFor="description">Description</label>
@@ -151,6 +218,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                     name="description"
                     value={initialFormData.description}
                     onChange={handleChange}
+                    maxLength={200}
                     rows="3"
                     required
                   ></textarea>
@@ -159,19 +227,20 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                 {initialFormData.type === "private" && (
                   <div className="form-group">
                     <label htmlFor="assignedUsers">Assigned User</label>
-                    <input
-                      type="text"
+                    <Select
                       className={`form-control ${errors.assignedUsers && 'is-invalid'}`}
                       id="assignedUsers"
                       name="assignedUsers"
-                      value={initialFormData.assignedUsers}
-                      onChange={handleChange}
+                      value={selectedUserIds.map(id => ({ value: id , label: id }))}
+                      onChange={handleSelectChange}
+                      options={userIds.map(userId => ({ value: userId, label: userId }))}
+                      isMulti
                       required
-                    />
+                    />             
                     {errors.assignedUsers && <div className="invalid-feedback">{errors.assignedUsers}</div>}
                   </div>
                 )}
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-orange">
                 {editing ? 'Save Changes' : 'Create'}
                 </button>
               </form>

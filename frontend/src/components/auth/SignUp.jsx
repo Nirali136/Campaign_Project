@@ -1,5 +1,6 @@
 import React,{ useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const URL_SERV = 'http://localhost:3000'
 
@@ -69,10 +70,15 @@ const SignUp = () => {
       const handleSubmit =async (e) => {
         e.preventDefault();
 
+        let hasErrors = false;
         for (const key in formData) {
           if (formData[key].trim() === '' || errors[key]) {
-            return;
+            hasErrors = true;
           }
+        }
+        if (hasErrors) {
+          toast.error('Please fill out all fields correctly.');
+          return;
         }
 
         try {
@@ -83,11 +89,17 @@ const SignUp = () => {
             },
             body: JSON.stringify(formData),
           });
+          if(response.ok){
             const data = await response.json();
             console.log('User signed up:', data);
+            toast.success('Sign up successfully!');
             navigate('/login');
+          }else{
+            throw new Error('Something went wrong!');
+          }
         } catch (err) {
           console.error('Error signing up:', err);
+          toast.error('Failed to sign up.');
         }
       };
 
@@ -108,6 +120,7 @@ const SignUp = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
+                    maxLength={30}
                     required
                   />
                   {errors.name && <div className="invalid-feedback">{errors.name}</div>}
@@ -121,6 +134,7 @@ const SignUp = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    maxLength={30}
                     required
                   />
                   {errors.email && <div className="invalid-feedback">{errors.email}</div>}
@@ -134,6 +148,7 @@ const SignUp = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
+                    maxLength={15}
                     required
                   />
                   {errors.password && <div className="invalid-feedback">{errors.password}</div>}
@@ -147,6 +162,12 @@ const SignUp = () => {
                     name="mobile_No"
                     value={formData.mobile_No}
                     onChange={handleChange}
+                    maxLength={10}
+                    onKeyDown={(e) => {
+                      if (!(e.key >= '0' && e.key <= '9') && e.key !== 'Backspace') {
+                        e.preventDefault();
+                    }
+                    }}
                     required
                   />
                   {errors.mobile_No && <div className="invalid-feedback">{errors.mobile_No}</div>}
@@ -159,12 +180,13 @@ const SignUp = () => {
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
+                    maxLength={50}
                     rows="3"
                     required
                   ></textarea>
                   {errors.address && <div className="invalid-feedback">{errors.address}</div>}
                 </div>
-                <button type="submit" className="btn btn-primary">Submit</button>
+                <button type="submit" className="btn btn-orange">Submit</button>
               </form>
             </div>
           </div>

@@ -12,23 +12,24 @@ const campaignSchema = new Schema({
         enum: ['public', 'private'],
         required: true
     },
-    imageUrl: {
+    imageUrl: [{
         type: String,
         required: true
-    },
+    }],
     description: {
         type: String,
         required: true
     },
-    // admin: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'User',
-    //     required: true
-    // },
     assignedUsers:[{
-        type: Schema.Types.ObjectId,
-        ref: 'User'
+        type: String
     }]
 });
 
 module.exports = mongoose.model('Campaign', campaignSchema);
+
+
+ // admin: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'User',
+    //     required: true
+    // },
