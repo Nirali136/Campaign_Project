@@ -26,10 +26,6 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
       setInitialFormData({ ...formData });
     }
 
-    // if (location.pathname.includes("createcampaign")) {
-    //   onUpdate(false); // Call the onUpdate function to update editing state
-    // }
-
   }, [campaigns, formData, editing, id]);
 
   useEffect(() => {
@@ -63,8 +59,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
   const handleChange = (e) => {
     const { name, value } = e.target;
     if(editing && name === "type" && value === "public"){
-    setInitialFormData({ ...initialFormData, [name]: value});
-    
+      setInitialFormData({ ...initialFormData, [name]: value});
     }else{
       setInitialFormData({...initialFormData, [name]:value});
       //onChange(e);

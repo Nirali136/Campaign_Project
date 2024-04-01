@@ -18,7 +18,7 @@ const RemoveUserFromCampaign = () => {
         const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignedUsers`);
         if (response.ok) {
           const data = await response.json();
-          setAssignedUsers(data.assignedUsers);
+          setAssignedUsers(data.assignedUsers.map(user => user.userId));
         } else {
           throw new Error('Failed to fetch assigned users');
         }

@@ -22,7 +22,7 @@ router.post('/campaign/:campaignId/assignUser/:userId',[
 
 ], adminController.assignUserToCampaign);
 router.delete('/campaign/:campaignId/removeUser/:userId',[
-    body('assignedUsers').matches(/^[a-z0-9]{24}$/),
+   // body('assignedUsers').matches(/^[a-z0-9]{24}$/),
 ], adminController.removeUserFromCampaign);
 
 module.exports = router;

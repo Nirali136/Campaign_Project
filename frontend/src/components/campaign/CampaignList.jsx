@@ -1,11 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import CampaignDetails from './CampaignDetails';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const CampaignList = ({ campaigns }) => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(2);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // useEffect(() => {
+  //   const searchParams = new URLSearchParams(location.search);
+  //   const page = parseInt(searchParams.get('page')) || 1;
+  //   if (page !== currentPage) {
+  //     setCurrentPage(page);
+  //   }
+  // }, [location.search]);
+
+  // useEffect(() => {
+  //   const searchParams = new URLSearchParams(location.search);
+  //   searchParams.set('page', currentPage);
+  //   navigate(`?${searchParams.toString()}`);
+  // }, [currentPage]);
 
   if (!Array.isArray(campaigns)) {
     return <p>Loading campaigns...</p>;
@@ -22,18 +38,21 @@ const CampaignList = ({ campaigns }) => {
   const goToPage = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
+      navigate(`/campaigns?page=${pageNumber}`);
     }
   };
 
   const goToPreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
+      navigate(`/campaigns?page=${currentPage - 1}`);
     }
   };
 
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
+      navigate(`/campaigns?page=${currentPage + 1}`);
     }
   };
 
@@ -49,9 +68,7 @@ const CampaignList = ({ campaigns }) => {
               <div className="card-header"><strong>{campaign.title}</strong></div>
               <div className="row no-gutters">
                 <div className="col-md-4">
-                 
-                  <img src={`http://localhost:3000/${campaign.imageUrl[0]}`} className="card-img" alt={campaign.title} />
-              
+                  <img src={`http://localhost:3000/${campaign.imageUrl[0]}`} className='image-fluid w-100 h-100' alt={campaign.title} />
                 </div>
                 <div className="col-md-8">
                   <div className="card-body">
@@ -68,16 +85,16 @@ const CampaignList = ({ campaigns }) => {
         </div> 
         <div className="pagination mt-4">
             {currentPage !== 1 && (
-              <button className="pagination-btn" onClick={goToPreviousPage}>Previous</button>
+              <Link to={`/campaigns?page=${currentPage - 1}`} className="pagination-btn" onClick={()=>goToPreviousPage()}>Previous</Link>
             )}
             {Array.from({ length: totalPages }, (_, i) => (
-              <button key={i} className={`pagination-btn ${currentPage === i + 1 ? 'active' : ''}`} onClick={() => goToPage(i + 1)}>
-                {i + 1}
-              </button>
+            <Link key={i} to={`/campaigns?page=${i + 1}`} className={`pagination-btn ${currentPage === i + 1 ? 'active' : ''}`} onClick={() => goToPage(i + 1)}>
+              {i + 1}
+            </Link>
             ))}
-            {currentPage !== totalPages && (
-              <button className="pagination-btn" onClick={goToNextPage}>Next</button>
-            )}
+           {currentPage !== totalPages && (
+            <Link to={`/campaigns?page=${currentPage + 1}`} className="pagination-btn" onClick={()=>goToNextPage()}>Next</Link>
+          )}
           </div>
       </div>
     </div>

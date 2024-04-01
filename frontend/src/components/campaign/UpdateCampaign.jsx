@@ -20,14 +20,14 @@ const UpdateCampaign = ({ campaigns, onEdit, onDelete }) => {
                 <p className="card-text"><strong>Image:</strong> {campaign.imageUrl}</p>
                 <p className="card-text"><strong>Description:</strong> {campaign.description.length > maxLength ? campaign.description.substring(0, maxLength) + '...' : campaign.description}</p>
                 <Link to={`/campaign/${campaign._id}`} className="btn btn-orange mr-2" onClick={()=>onEdit(campaign._id)}>Edit</Link>
-                <button className="btn btn-danger" onClick={() => onDelete(campaign._id)}>Delete</button>
+                <button className="btn btn-danger mx-1" onClick={() => onDelete(campaign._id)}>Delete</button>
                 {campaign.type === 'private' && (
                 <>
                   <Link to={`/campaign/${campaign._id}/assignUser`} className="btn btn-success mr-2">Add User</Link>
-                  <Link to={`/campaign/${campaign._id}/removeUser`}className="btn btn-warning mr-2">Remove User</Link>
+                  <Link to={`/campaign/${campaign._id}/removeUser`}className="btn btn-warning mr-2 mx-1">Remove User</Link>
                 </>
                 )}
-                <Link to={`/campaigndetails/${campaign._id}`} className="btn btn-orange" style={{ position: "absolute", bottom: "10px", right: "10px" }}>View Details</Link>
+                <Link to={`/campaigndetails/${campaign._id}`} className="btn btn-orange mr-5 mb-0" >View Details</Link>
               </div>
             </div>
           ))}
@@ -38,3 +38,5 @@ const UpdateCampaign = ({ campaigns, onEdit, onDelete }) => {
 }
 
 export default UpdateCampaign
+
+// style={{ position: "absolute", bottom: "10px", right: "10px" }}

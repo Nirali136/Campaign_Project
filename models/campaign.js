@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const User = require('./user')
 
 const Schema = mongoose.Schema;
 
@@ -20,9 +21,35 @@ const campaignSchema = new Schema({
         type: String,
         required: true
     },
+    // assignedUsers:[{
+    //     type: Schema.Types.ObjectId,
+    //     //type: String,
+    //     ref: "User"
+    // }],
     assignedUsers:[{
-        type: String
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        },
+        name: {
+            type: String,
+            required: true
+        }
     }]
+});
+
+campaignSchema.pre('save', async function(next) {
+    try {
+        const User = mongoose.model('User');
+        const users = await User.find({_id: { $in: this.assignedUsers.map(user => user.userId) }});
+        this.assignedUsers = this.assignedUsers.map(user => {
+            const foundUser = users.find(u => u._id.toString() === user.userId.toString());
+            return { userId: user.userId, name: foundUser ? foundUser.name : 'Unknown' };
+        });
+        next();
+    } catch (error) {
+        next(error);
+    }
 });
 
 module.exports = mongoose.model('Campaign', campaignSchema);
