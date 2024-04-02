@@ -186,7 +186,7 @@ const SignUp = () => {
                   ></textarea>
                   {errors.address && <div className="invalid-feedback">{errors.address}</div>}
                 </div>
-                <button type="submit" className="btn btn-orange">Submit</button>
+                <button type="submit" className="btn btn-orange mt-2">Submit</button>
               </form>
             </div>
           </div>

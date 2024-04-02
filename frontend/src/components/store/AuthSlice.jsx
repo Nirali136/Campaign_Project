@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   isLoggedIn: false,
-  user: localStorage.user || null ,
+  //user: localStorage.user || null ,
 };
 
 const authSlice = createSlice({
@@ -13,12 +13,10 @@ const authSlice = createSlice({
     setLoggedIn(state,action) {
       state.isLoggedIn = true;
       state.user = action.payload;
-      localStorage.user = action.payload;
     },
     setLoggedOut(state) {
       state.isLoggedIn = false;
       state.user = null;
-      localStorage.removeItem('user');
     },
   },
 });

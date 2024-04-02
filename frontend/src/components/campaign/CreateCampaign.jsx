@@ -153,6 +153,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
     navigate('/campaigns', { replace: true });
   }
   };
+  
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -235,7 +236,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                     {errors.assignedUsers && <div className="invalid-feedback">{errors.assignedUsers}</div>}
                   </div>
                 )}
-                <button type="submit" className="btn btn-orange">
+                <button type="submit" className="btn btn-orange mt-2">
                 {editing ? 'Save Changes' : 'Create'}
                 </button>
               </form>

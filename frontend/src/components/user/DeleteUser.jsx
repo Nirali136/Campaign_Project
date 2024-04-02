@@ -4,30 +4,29 @@ import { toast } from 'react-toastify';
 
 const URL_SERV = 'http://localhost:3000';
 
-const RemoveUserFromCampaign = () => {
-  const [userId, setUserId] = useState('');
+const DeleteUser = () => {
+    const [userId, setUserId] = useState('');
+  const [userIds, setUserIds] = useState([]);
   const [errors, setErrors] = useState('');
-  const [assignedUsers, setAssignedUsers] = useState([]);
-  const { campaignId } = useParams();
 
   const userIdRegex = /^[a-z0-9]{24}$/;
 
   useEffect(() => {
-    const fetchAssignedUsers = async () => {
+    const fetchUsers = async () => {
       try {
-        const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignedUsers`);
+        const response = await fetch(`${URL_SERV}/users`);
         if (response.ok) {
           const data = await response.json();
-          setAssignedUsers(data.assignedUsers.map(user => user.userId));
+          setUserIds(data.userIds);
         } else {
-          throw new Error('Failed to fetch assigned users');
+          throw new Error('Failed to fetch users');
         }
       } catch (error) {
-        console.error('Error fetching assigned users:', error);
+        console.error('Error fetching users:', error);
       }
     };
-    fetchAssignedUsers();
-  }, [campaignId]);
+    fetchUsers();
+  }, []);
 
   const handleChange = (e) => {
     const { value } = e.target;
@@ -44,15 +43,15 @@ const RemoveUserFromCampaign = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/removeUser/${userId}`, {
-        method: 'DELETE'
-      })
-      if(response.ok){
+      const response = await fetch(`${URL_SERV}/deleteUser/${userId}`, { 
+        method: 'DELETE' 
+    });
+    if(response.ok){
         console.log('User removed successfully');
         toast.success('User removed successfully');
       }else{
         throw new Error('Server error!');
-      }
+    }
     } catch (error) {
       console.error('Failed to remove user:', error);
       toast.error('Failed to remove user');
@@ -64,7 +63,7 @@ const RemoveUserFromCampaign = () => {
       <div className="row justify-content-center">
         <div className="col-md-8">
           <div className="card mt-3">
-            <div className="card-header">Remove User from Campaign</div>
+            <div className="card-header">Delete User From Database</div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
@@ -78,13 +77,13 @@ const RemoveUserFromCampaign = () => {
                     required
                   >
                     <option value="">Select User ID</option>
-                    {assignedUsers.map(id => (
+                    {userIds.map(id => (
                       <option key={id} value={id}>{id}</option>
                     ))}
                   </select>
                   {errors && <div className="invalid-feedback">{errors}</div>}
                 </div>
-                <button type="submit" className="btn btn-warning mt-2">Remove User</button>
+                <button type="submit" className="btn btn-danger mt-2">Delete User</button>
               </form>
             </div>
           </div>
@@ -94,4 +93,4 @@ const RemoveUserFromCampaign = () => {
   );
 };
 
-export default RemoveUserFromCampaign;
+export default DeleteUser;

@@ -97,7 +97,7 @@ const ForgotPassword = () => {
                                     />
                                      {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                                 </div>
-                                <button type="submit" className="btn btn-orange">Reset Password</button>
+                                <button type="submit" className="btn btn-orange mt-2">Reset Password</button>
                             </form>
                         </div>
                     </div>

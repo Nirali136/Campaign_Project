@@ -98,7 +98,8 @@
   .pagination {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    /* margin-top: 50px; */
+     margin-bottom: 50px;
   }
   
   .pagination-btn {
@@ -132,5 +133,12 @@
   .pagination-btn:disabled:hover {
     background-color: #f4b738;
     color: #ffffff;
+  }
+
+  @media (max-width: 767px) {
+    .pagination.fixed-bottom {
+      margin-top: 50px;
+      position: relative; /* or whatever appropriate */
+    }
   }
   

@@ -76,7 +76,7 @@ const AddUserToCampaign = () => {
           setSelectedUserIds([]); 
         } catch (error) {
           console.error('failed to add user:', error);
-          toast.error('failed to add user');
+          toast.error('User is alredy assigned to campign');
         }
       };
 
@@ -104,7 +104,7 @@ const AddUserToCampaign = () => {
                       />
                       {errors && <div className="invalid-feedback">{errors}</div>}
                     </div>
-                    <button type="submit" className="btn btn-orange">Add User</button>
+                    <button type="submit" className="btn btn-orange mt-2">Add User</button>
                   </form>
                 </div>
               </div>

@@ -192,8 +192,7 @@ exports.assignUserToCampaign = async (req, res) => {
         if (!user) {
             throw new Error('User not found');
         }
-
-        const isUserAssigned = campaign.assignedUsers.includes(u => u.userId.toString() === userId);
+        const isUserAssigned = campaign.assignedUsers.some(u => u.userId.toString() === userId);
         if (isUserAssigned) {
             return res.status(400).json({ message: 'User is already assigned to this campaign' });
         }

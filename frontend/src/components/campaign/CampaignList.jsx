@@ -9,20 +9,6 @@ const CampaignList = ({ campaigns }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // useEffect(() => {
-  //   const searchParams = new URLSearchParams(location.search);
-  //   const page = parseInt(searchParams.get('page')) || 1;
-  //   if (page !== currentPage) {
-  //     setCurrentPage(page);
-  //   }
-  // }, [location.search]);
-
-  // useEffect(() => {
-  //   const searchParams = new URLSearchParams(location.search);
-  //   searchParams.set('page', currentPage);
-  //   navigate(`?${searchParams.toString()}`);
-  // }, [currentPage]);
-
   if (!Array.isArray(campaigns)) {
     return <p>Loading campaigns...</p>;
   }
@@ -68,7 +54,7 @@ const CampaignList = ({ campaigns }) => {
               <div className="card-header"><strong>{campaign.title}</strong></div>
               <div className="row no-gutters">
                 <div className="col-md-4">
-                  <img src={`http://localhost:3000/${campaign.imageUrl[0]}`} className='image-fluid w-100 h-100' alt={campaign.title} />
+                  <img src={`http://localhost:3000/${campaign.imageUrl[0]}`} className='image-fluid w-100 h-100 rounded' alt={campaign.title} />
                 </div>
                 <div className="col-md-8">
                   <div className="card-body">
@@ -83,7 +69,7 @@ const CampaignList = ({ campaigns }) => {
             </div>
           ))}
         </div> 
-        <div className="pagination mt-4">
+        <div className="pagination fixed-bottom">
             {currentPage !== 1 && (
               <Link to={`/campaigns?page=${currentPage - 1}`} className="pagination-btn" onClick={()=>goToPreviousPage()}>Previous</Link>
             )}

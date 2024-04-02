@@ -11,8 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const dispatch = useDispatch();
 
-  const user = useSelector(state => {
-    console.log(state); // Log the state to check its structure
+  const user = useSelector(state => { 
     return state.user;
   });
 
@@ -21,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await fetch(`${URL_SERV}/checkAuthStatus`, {
           method: 'GET',
-          credentials: 'include', // Include cookies in the request
+          credentials: 'include',
         });
         const data = await response.json();
         if (data.isLoggedIn) {

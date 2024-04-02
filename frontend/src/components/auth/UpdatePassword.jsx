@@ -97,7 +97,7 @@ const UpdatePassword = () => {
                                     />
                                     {errors.newPassword && <div className="invalid-feedback">{errors.newPassword}</div>}
                                 </div>
-                                <button type="submit" className="btn btn-orange">Update Password</button>
+                                <button type="submit" className="btn btn-orange mt-2">Update Password</button>
                             </form>
                         </div>
                     </div>

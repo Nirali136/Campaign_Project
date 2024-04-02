@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from  'react';
-import {BrowserRouter as Router, Route, Routes, useNavigate} from 'react-router-dom';
+import { Route, Routes, useLocation} from 'react-router-dom';
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
 import CreateCampaign from './components/campaign/CreateCampaign';
@@ -10,7 +10,6 @@ import { useParams } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import AuthGuard from '../AuthGuard';
 import { AuthProvider, useAuth } from './components/context/AuthContext';
-// import { store } from './components/store/Store';
 import AddUserToCampaign from './components/campaign/AddUserToCampaign';
 import RemoveUserFromCampaign from './components/campaign/RemoveUserFromCampaign';
 import MainLayout from './layout/MainLayout';
@@ -18,6 +17,7 @@ import { toast } from 'react-toastify';
 import CampaignDetails from './components/campaign/CampaignDetails';
 import ForgotPassword from './components/auth/ForgotPassword';
 import UpdatePassword from './components/auth/UpdatePassword';
+import DeleteUser from './components/user/DeleteUser';
 
 
 
@@ -43,6 +43,7 @@ const App =()=> {
   
   
   const { id } = useParams();
+  const location = useLocation( );
   //const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,7 +53,6 @@ const App =()=> {
         });
         const data = await response.json();
         setCampaigns(data);
-        console.log('Campaigns:', data);
       } catch (err) {
         console.error('Error fetching campaigns:', err);
       }
@@ -61,8 +61,9 @@ const App =()=> {
   }, []);
 
   useEffect(() => {
-    if (location.pathname === "/createcampaign") {
+    if (editing && location.pathname !== `/campaign/${editId}`) {
       setEditing(false);
+      console.log(editing);
     }
   }, [location]);
 
@@ -148,7 +149,6 @@ const App =()=> {
 
   return (
     <AuthProvider>
-    <Router>
       <div>
         <Header/>
         <MainLayout>
@@ -158,6 +158,7 @@ const App =()=> {
         <Route path="login" element={<Login/>}/>
         <Route path="signup" element={<SignUp/>}/> 
         <Route path="forgotPassword" element={<ForgotPassword/>}/>
+        <Route path="deleteUser" element={<DeleteUser/>}/>
         <Route path="createcampaign" element={<AuthGuard><CreateCampaign campaigns={campaigns} formData={formData} editing={editing} onChange={handleChange} onSubmit={handleSubmit} onEdit={handleEdit} onUpdate={handleUpdate}/></AuthGuard>}/>
         <Route path="updatecampaign" element={<AuthGuard><UpdateCampaign campaigns={campaigns} editing={editing} onEdit={handleEdit} onDelete={handleDelete}/></AuthGuard>}/>
         <Route path="campaign/:id" element={<AuthGuard><CreateCampaign campaigns={campaigns} formData={formData} editing={editing} onChange={handleChange} onSubmit={handleSubmit} onEdit={handleEdit} onUpdate={handleUpdate}/></AuthGuard>}/>
@@ -168,7 +169,6 @@ const App =()=> {
         </Routes>
         </MainLayout>
       </div>
-    </Router>
     </AuthProvider>
   )
 }

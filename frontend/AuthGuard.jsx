@@ -7,11 +7,6 @@ import { useAuth } from './src/components/context/AuthContext';
 const AuthGuard = ({ children }) => {
   const { isLoggedIn, user } = useAuth();
 
-  // if (!isLoggedIn) {
-  //   return <Navigate to="/login" />;
-  // }
-
-  // return <>{children}</>;  
   if (isLoggedIn && user && user.email === 'niralipatel13006@gmail.com') {
     return <>{children}</>;
   } else {

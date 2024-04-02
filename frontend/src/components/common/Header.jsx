@@ -54,6 +54,9 @@ const Header = () => {
             <li className="nav-item">
               <NavLink to="updatecampaign" className="nav-link">Update Campaign</NavLink>
             </li>
+            <li className="nav-item">
+              <NavLink to="deleteUser" className="nav-link">Delete User</NavLink>
+            </li>
             </>
             ):(<></>)}
             </ul>
