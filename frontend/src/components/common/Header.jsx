@@ -46,6 +46,13 @@ const Header = () => {
             <li className="nav-item">
               <NavLink to="campaigns" className="nav-link">Campaigns</NavLink>
             </li>
+            {(isLoggedIn && user) ? (
+              <>
+            <li className="nav-item">
+              <NavLink to="enrolledCampaigns" className="nav-link">Enrolled Campaigns</NavLink>
+            </li>
+            </>
+            ):(<></>)}
             {(isLoggedIn && user && user.email === 'niralipatel13006@gmail.com') ? (
               <>
             <li className="nav-item">

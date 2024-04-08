@@ -18,15 +18,11 @@ import CampaignDetails from './components/campaign/CampaignDetails';
 import ForgotPassword from './components/auth/ForgotPassword';
 import UpdatePassword from './components/auth/UpdatePassword';
 import DeleteUser from './components/user/DeleteUser';
-
-
+import EnrolledCampaigns from './components/campaign/EnrolledCampaigns';
 
 const URL_SERV = 'http://localhost:3000';
 
 const App =()=> {
-
-  const isLoggedIn = useSelector(state => state.isLoggedIn);
-  // const {login, logout } = useAuth();
 
   const [campaigns, setCampaigns] = useState([]);
   const [formData, setFormData] = useState({
@@ -39,17 +35,15 @@ const App =()=> {
   const [editing, setEditing] = useState(false);
   const [editId, setEditId] = useState("");
 
-
-  
-  
-  const { id } = useParams();
   const location = useLocation( );
-  //const navigate = useNavigate();
 
   useEffect(() => {
+    if(location.pathname !== `/updatecampaign`){
     const fetchCampaigns = async () => {
       try {
         const response = await fetch(`${URL_SERV}/admin/campaigns`, {
+          method: 'GET',
+          credentials: 'include',
         });
         const data = await response.json();
         setCampaigns(data);
@@ -58,13 +52,32 @@ const App =()=> {
       }
     };
     fetchCampaigns();
-  }, []);
+  }
+  }, [location]);
 
   useEffect(() => {
     if (editing && location.pathname !== `/campaign/${editId}`) {
       setEditing(false);
       console.log(editing);
     }
+  }, [location]);
+
+  useEffect(() => {
+    if(location.pathname === `/updatecampaign`){
+    const fetchCampaigns = async () => {
+      try {
+        const response = await fetch(`${URL_SERV}/admin/updatecampaigns`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const data = await response.json();
+        setCampaigns(data);
+      } catch (err) {
+        console.error('Error fetching campaigns:', err);
+      }
+    };
+    fetchCampaigns();
+  }
   }, [location]);
 
   const handleChange = (e) => {
@@ -84,6 +97,7 @@ const App =()=> {
         // headers: {
         //   'Content-Type': 'multipart/form-data',
         // },
+        credentials: 'include',
         body: formDataWithImage,
       });
       console.log(response);
@@ -102,16 +116,19 @@ const App =()=> {
 
   const handleEdit = (campaignId) => {
     setEditing(true);
+    console.log('handleedit');
     setEditId(campaignId);
   }
 
   const handleUpdate = async (formDataWithImage,editId) => {
     try{
+      console.log('ed');
     const response = await fetch(`${URL_SERV}/admin/campaign/${editId}`, {
       method: 'PUT',
       // headers: {
       //   'Content-Type': 'application/json',
       // },
+      credentials: 'include',
       body: formDataWithImage,
     });
     if(response.ok){
@@ -134,13 +151,15 @@ const App =()=> {
     try {
       const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if(response.ok) {
       setCampaigns(campaigns.filter(campaign => campaign._id !== campaignId));
       console.log('Campaign deleted successfully');
       toast.success('Campaign deleted successfully');
       } else {
-        throw new Error('Could not delete campaign'); 
+        console.log('Could not delete campaign'); 
+        toast.error('Cannot delete campaign with enrolled users.');
       }
     } catch (err) {
       console.error('Error deleting campaign:', err);
@@ -158,12 +177,13 @@ const App =()=> {
         <Route path="login" element={<Login/>}/>
         <Route path="signup" element={<SignUp/>}/> 
         <Route path="forgotPassword" element={<ForgotPassword/>}/>
-        <Route path="deleteUser" element={<DeleteUser/>}/>
+        <Route path="deleteUser" element={<AuthGuard><DeleteUser/></AuthGuard>}/>
         <Route path="createcampaign" element={<AuthGuard><CreateCampaign campaigns={campaigns} formData={formData} editing={editing} onChange={handleChange} onSubmit={handleSubmit} onEdit={handleEdit} onUpdate={handleUpdate}/></AuthGuard>}/>
-        <Route path="updatecampaign" element={<AuthGuard><UpdateCampaign campaigns={campaigns} editing={editing} onEdit={handleEdit} onDelete={handleDelete}/></AuthGuard>}/>
+        <Route path="updatecampaign" element={<AuthGuard><UpdateCampaign campaigns = {campaigns} editing={editing} onEdit={handleEdit} onDelete={handleDelete} onUpdate= {handleUpdate}/></AuthGuard>}/>
         <Route path="campaign/:id" element={<AuthGuard><CreateCampaign campaigns={campaigns} formData={formData} editing={editing} onChange={handleChange} onSubmit={handleSubmit} onEdit={handleEdit} onUpdate={handleUpdate}/></AuthGuard>}/>
         <Route path="campaigndetails/:id" element = {<CampaignDetails campaigns={campaigns}/>} /> 
         <Route path="reset/:token" element = {<UpdatePassword/>}/>
+        <Route path="enrolledCampaigns" element={<EnrolledCampaigns/>}/>
         <Route path="campaign/:campaignId/assignUser" element={<AuthGuard><AddUserToCampaign/></AuthGuard>}/>      
         <Route path="campaign/:campaignId/removeUser" element={<AuthGuard><RemoveUserFromCampaign/></AuthGuard>}/>
         </Routes>

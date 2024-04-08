@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const Campaign = require('./campaign');
 
 const userSchema = new Schema({
     email:{
@@ -22,6 +23,10 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
+    enrolledCampaigns:[{
+        type: Schema.Types.ObjectId,
+        ref: 'Campaign'
+    }],
     resetPasswordToken: String,
     resetPasswordExpires: Date, 
 })

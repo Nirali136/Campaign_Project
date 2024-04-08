@@ -16,11 +16,15 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
  const navigate = useNavigate();
  const location = useLocation();
 
+ let errorMessage = '';
+  let err =  {};
+  let formIsValid = true;
+
   useEffect(() => {
     if (editing && campaigns.length > 0) {
       const campaign = campaigns.find(campaign => campaign._id === id);
       if (campaign) {
-        setInitialFormData({ ...campaign });
+        setInitialFormData({ ...campaign});
       }
     } else {
       setInitialFormData({ ...formData });
@@ -31,10 +35,13 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
   useEffect(() => {
     const fetchUserIds = async () => {
       try {
-        const response = await fetch(`${URL_SERV}/users`);
+        const response = await fetch(`${URL_SERV}/users`,{
+          method: 'GET',
+          credentials: 'include',
+        });
         if (response.ok) {
           const data = await response.json();
-          setUserIds(data.userIds);
+          setUserIds(data.emails);
         } else {
           throw new Error('Failed to fetch user IDs');
         }
@@ -43,7 +50,6 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
       }
     };
     fetchUserIds();
-    
   }, []);
 
   const handleImageUpload = async (e) => {
@@ -51,6 +57,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
      if(files.length > 5){
       e.preventDefault();
       alert(`Cannot upload files more than 5`);
+      formIsValid = false;
       return;
      }
      setImageFile(files);
@@ -58,14 +65,15 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    errorMessage = validateField(name, value);
+    err = {...err,  [name]: errorMessage};
+    setErrors(err);
     if(editing && name === "type" && value === "public"){
       setInitialFormData({ ...initialFormData, [name]: value});
     }else{
       setInitialFormData({...initialFormData, [name]:value});
       //onChange(e);
     }
-    // Validate the changed field
-    validateField(name, value);
   };
 
   const handleSelectChange = (selectedOptions) => {
@@ -75,66 +83,52 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
   };
 
   const validateField = (name, value) => {
-    let errorMessage = '';
     switch (name) {
       case 'title':
-        if (value.trim().length < 3) {
-          errorMessage = 'Title must be at least 3 characters long';
+        if(value.trim() === ''){
+          return "Title is requried";
+        }else if (value.trim().length < 3) {
+          return 'Title must be at least 3 characters long';
         }
         break;
       case "imageUrl":
         const allowedExtensions = ["jpg", "jpeg", "png"];
         const fileSizeLimit = 5 * 1024 * 1024; // 5 MB limit
-        if (!value) {
-          errorMessage = "Please select an image";
+        if (imageFile.length === 0) {
+          return "please select an image";
         } else {
-          const fileExtension = value && value.name ? value.name.split(".").pop().toLowerCase() : '';
-          if (!allowedExtensions.includes(fileExtension)) {
-            errorMessage = "Only JPG, JPEG or PNG files are allowed";
-          } else if (value.size > fileSizeLimit) {
-            errorMessage = "File size exceeds 5MB limit";
+          if (value.size > fileSizeLimit) {
+            return "File size exceeds 5MB limit";
           }
         }
       break;
       case 'description':
-        if (value.trim().length < 8) {
-          errorMessage = 'Description must be at least 8 characters long';
+        if(value.trim() === ''){
+          return "Description is requried";
+        }else if (value.trim().length < 8) {
+          return 'Description must be at least 8 characters long';
         } else if (value.trim().length > 200) {
-          errorMessage = 'Description must be at most 200 characters long';
+          return 'Description must be at most 200 characters long';
         }
-        break;
+      break;
       default:
         break;
     }
-    setErrors({
-      ...errors,
-      [name]: errorMessage
-    });
   };
 
 
   const handleSubmit =async (e) => {
     e.preventDefault();
-    let formIsValid = true;
+    formIsValid = true;
     for (const key in initialFormData) {
-      if (initialFormData.hasOwnProperty(key)) {
-        validateField(key, initialFormData[key]);
-        if (errors[key]) {
-          formIsValid = false;
-        }
+      const errorMessage = validateField(key, initialFormData[key]);
+      err[key] = errorMessage;
+      if (errorMessage) {
+        formIsValid = false;
       }
     }
+    setErrors(err); 
 
-    if (imageFile && errors["imageUrl"]) {
-      console.log('imagefile',imageFile);
-      formIsValid = false;
-    }
-
-    if (imageFile.length === 0) {
-      setErrors({ ...errors, imageUrl: "Please select at least one image" });
-      formIsValid = false;
-    }
-  
     if(formIsValid){
       const formDataWithImage = new FormData();
       const { imageUrl, ...formDataWithoutImage } = initialFormData;
@@ -163,7 +157,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
             {editing ? 'Edit Campaign' : 'Create Campaign'}
             </div>
             <div className="card-body">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} noValidate>
                 <div className="form-group">
                   <label htmlFor="title">Title</label>
                   <input
@@ -199,6 +193,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                     className={`form-control ${errors.imageUrl && "is-invalid"}`}
                     id="imageUrl"
                     name="imageUrl"
+                    // value={initialFormData.imageUrl.length.toString()}
                     accept="image/*"
                     onChange={handleImageUpload}
                     multiple

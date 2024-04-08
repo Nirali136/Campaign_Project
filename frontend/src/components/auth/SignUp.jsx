@@ -16,6 +16,7 @@ const SignUp = () => {
       });
 
       const [errors, setErrors] = useState({});
+      let errorMessage = '';
     
       const handleChange = (e) => {
         const { name, value } = e.target;
@@ -24,61 +25,90 @@ const SignUp = () => {
           [name]: value
         });
 
-        validateField(name, value);
+        errorMessage = validateField(name, value);
+        setErrors({
+          ...errors,
+          [name]: errorMessage
+        });
       };
     
       const validateField = (name, value) => {
-        let errorMessage = '';
         switch (name) {
             case 'name':
-                if (value.trim().length < 3) {
-                    errorMessage = 'Name must be at least 3 characters long';
+                if(value.trim() === ''){
+                  return "Name is requried";
+                }
+                else if (value.trim().length < 3) {
+                    return 'Name must be at least 3 characters long';
                 }
                 break;
             case 'email':
                 const emailRegex = /^\S+@\S+\.\S+$/;
-                if (!emailRegex.test(value)) {
-                    errorMessage = 'Please enter a valid email address';
+                if(value.trim() === ''){
+                  return "Email is requried";
+                }
+                else if (!emailRegex.test(value)) {
+                    return 'Please enter a valid email address';
                 }
                 break;
             case 'password':
-                if (value.trim().length < 5) {
-                    errorMessage = 'Password must be at least 5 characters long';
+                const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{5,16}$/
+                if(value.trim() === ''){
+                  return "Password is requried";
+                }
+                else if (value.trim().length < 5) {
+                    return 'Password must be at least 5 characters long';
+                }
+                else if(!passwordRegex.test(value)){
+                  return "Password should contain minimum one uppercase letter, one lowercase letter, one number and one special character."
                 }
                 break;
             case 'mobile_No':
                 const mobileRegex = /^[0-9]{10}$/;
-                if (!mobileRegex.test(value)) {
-                    errorMessage = 'Please enter a valid 10-digit mobile number';
+                if(value.trim() === ''){
+                  return "Moblie number is requried";
+                }
+                else if (!mobileRegex.test(value)) {
+                    return 'Please enter a valid 10-digit mobile number';
                 }
                 break;
             case 'address':
-              if (value.trim().length < 8) {
-                errorMessage = 'Address must be at least 8 characters long';
+              if(value.trim() === ''){
+                return "Address is requried";
+              }
+              else if (value.trim().length < 8) {
+                return 'Address must be at least 8 characters long';
               } else if (value.trim().length > 50) {
-                errorMessage = 'Address must be at most 50 characters long';
+                return 'Address must be at most 50 characters long';
               }
                 break;
             default:
                 break;
         }
-        setErrors({
-            ...errors,
-            [name]: errorMessage
-        });
     };
       const handleSubmit =async (e) => {
-        e.preventDefault();
-
-        let hasErrors = false;
+      e.preventDefault();
+      let hasErrors = false;
+      let err =  {};
         for (const key in formData) {
-          if (formData[key].trim() === '' || errors[key]) {
+          if (formData[key] === '' || errors[key]) {
             hasErrors = true;
           }
+          if (formData.hasOwnProperty(key)) {
+            errorMessage = validateField(key, formData[key]);
+            err = {...err,  [key]: errorMessage};
+          }
+          setErrors(err);
         }
         if (hasErrors) {
+          const { name, value } = e.target;
+          setFormData({
+            ...formData,
+            [name]: value
+          });
+          validateField(name, value);
           toast.error('Please fill out all fields correctly.');
-          return;
+          return errors;
         }
 
         try {

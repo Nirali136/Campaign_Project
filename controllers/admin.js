@@ -7,19 +7,54 @@ const asyncLock = require('async-lock');
 
 const lock = new asyncLock();
 
+exports.getCampaigns = async (req, res) => {
+    try {
+        let  campaigns;
+        if(req.user){
+            const user = await User.findOne({ email: req.user.email });
 
-exports.getCampaigns = async  (req, res) => {
-    try{
-        const campaigns = await Campaign
-        .find()
-        if(!campaigns){
+            if(!user){
+                throw new Error("User not found!");
+            }
+            const userId =  user._id;
+            const enrolledCampaigns = user.enrolledCampaigns;
+
+            campaigns = await Campaign.find({
+             $or:[
+                    {   _id :  {$nin : enrolledCampaigns},
+                        type: 'public'     
+                    }
+                    , { 
+                        type: 'private', 
+                        _id :  {$nin : enrolledCampaigns},
+                        "assignedUsers.userId": userId 
+                    }  
+                ]
+            });
+        } else{
+            campaigns = await Campaign.find({type:'public'});
+        }
+        if (!campaigns || campaigns.length === 0) {
             throw new Error("No campaigns found!");
-        } 
+        }
+
         res.status(200).json(campaigns);
-    }catch(err){
+    } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.getupdateCampaigns = async (req,res) => {
+    try{
+        const campaigns = await Campaign.find();
+        if(!campaigns){
+            throw new Error("No campaigns found!");
+        }
+        res.status(200).json(campaigns);
+    }catch(err) {
+        res.status(500).json({message: err.message});
+    }
+}
 
 exports.createCampaign  = async (req,res)=>{
     let { title, type, description, assignedUsers} = req.body;
@@ -34,19 +69,18 @@ exports.createCampaign  = async (req,res)=>{
     if(!req.files){
         return  res.status(400).json({msg:"Please select an image!"});
     }
-    console.log(req.files);
     try{
         let assignedUsersDetails = [];
         if (type === 'private') {
             if (!assignedUsers || assignedUsers.length === 0) {
                 return res.status(400).json({ message: 'Assigned users are required for private campaigns.' });
             }
-        for (const userId of assignedUsers) {
-            const user = await User.findById(userId);
+        for (const email of assignedUsers) {
+            const user = await User.find({email : email });
             if (!user) {
-                return res.status(404).json({ message: `User with ID ${userId} not found` });
+                return res.status(404).json({ message: `User with ID ${email} not found` });
             }
-            assignedUsersDetails.push({ userId: user._id, name: user.name });
+            assignedUsersDetails.push({ userId: user[0]._id, name: user[0].name, email: user[0].email });
         }
         } else {
             assignedUsers= undefined; 
@@ -71,7 +105,7 @@ exports.getCampaign = async (req,res) => {
     const campaignId = req.params.campaignId;
     try{
         const  campaign = await Campaign
-        .findById(campaignId)
+        .findById(campaignId);
         // .populate('admin')
         //.populate('assignedUsers');
         if (!campaign) {
@@ -116,12 +150,12 @@ exports.updateCampaign = async (req, res) => {
             }
 
             let assignedUsersDetails = [];
-            for (const userId of assignedUsers) {
-                const user = await User.findById(userId);
+            for (const email of assignedUsers) {
+                const user = await User.find({email: email});
                 if (!user) {
-                    return res.status(404).json({ message: `User with ID ${userId} not found` });
+                    return res.status(404).json({ message: `User with ID ${email} not found` });
                 }
-                assignedUsersDetails.push({ userId: user._id, name: user.name });
+                assignedUsersDetails.push({ userId: user[0]._id, name: user[0].name, email: user[0].email });
             }
             campaign.assignedUsers = assignedUsersDetails;
         }
@@ -145,14 +179,18 @@ exports.updateCampaign = async (req, res) => {
 exports.deleteCampaign = async (req,res) => {
     const campaignId = req.params.campaignId;
     try{
-        const campaign = await Campaign.findByIdAndDelete(
-            {_id: campaignId}, 
-        );
+        const campaign = await Campaign.findById(campaignId);
         if(!campaign){
             throw new Error("No campaigns found!");
         }
+        console.log(campaign.enrolledUsers.length);
+        if (campaign.enrolledUsers.length > 0) {
+            return res.status(403).json({ message: "Cannot delete campaign with enrolled users." });
+        }else{
+        await Campaign.findByIdAndDelete(campaignId);
         clearImage(campaign.imageUrl[0]);
         res.status(200).json({message: "campaign successfully deleted."})
+        }
     }catch(err) {
         console.log(err);
         return res.status(500).json({ message: err.message });
@@ -170,7 +208,8 @@ exports.getAssignedUsers = async (req, res) => {
 
         const assignedUsers = campaign.assignedUsers.map(user => ({
             userId: user.userId,
-            name: user.name
+            name: user.name,
+            email: user.email
         })); 
         return res.status(200).json({ assignedUsers });
     } catch (error) {
@@ -180,7 +219,8 @@ exports.getAssignedUsers = async (req, res) => {
 };
 
 exports.assignUserToCampaign = async (req, res) => {
-    const { campaignId, userId } = req.params;
+    const { campaignId, email } = req.params;
+    console.log(email);
     try {
         await lock.acquire(campaignId,async ()=>{
         const campaign = await Campaign.findById(campaignId);
@@ -188,15 +228,17 @@ exports.assignUserToCampaign = async (req, res) => {
             throw new Error('Campaign not found');
         }
 
-        const user = await User.findById(userId);
+        const user = await User.find({email: email});
+        console.log(user);
         if (!user) {
             throw new Error('User not found');
         }
-        const isUserAssigned = campaign.assignedUsers.some(u => u.userId.toString() === userId);
+        const isUserAssigned = campaign.assignedUsers.some(u => u.email === email);
         if (isUserAssigned) {
             return res.status(400).json({ message: 'User is already assigned to this campaign' });
         }
-        campaign.assignedUsers.push({ userId: user._id, name: user.name });
+        console.log(user[0]._id);
+       campaign.assignedUsers.push({ userId: user[0]._id, name: user[0].name, email:  user[0].email});
         await campaign.save();
         res.status(200).json({ message: 'User assigned to campaign successfully' });
     });
@@ -206,17 +248,16 @@ exports.assignUserToCampaign = async (req, res) => {
 }
 
 exports.removeUserFromCampaign = async (req, res) => {
-    const { campaignId, userId } = req.params;
+    const { campaignId, email } = req.params;
     try {
         const campaign = await Campaign.findById(campaignId);
         if (!campaign) {
             throw new Error('Campaign not found');
         }
-        const userIndex = campaign.assignedUsers.findIndex(u => u.userId.toString() === userId);
+        const userIndex = campaign.assignedUsers.findIndex(u => u.email === email);
         if (userIndex === -1) {
             throw new Error('User not found in assigned users');
         }
-
         campaign.assignedUsers.splice(userIndex, 1);
         await campaign.save();
         res.status(200).json({ message: 'User removed from campaign successfully' });

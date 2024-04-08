@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const User = require('./user')
+const User = require('./user');
 
 const Schema = mongoose.Schema;
 
@@ -34,8 +34,36 @@ const campaignSchema = new Schema({
         name: {
             type: String,
             required: true
+        },
+        email: {
+            type: String,
+            required:true
+        }
+    }],
+    enrolledUsers:[{
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        },
+        name: {
+            type: String,
+            required: true
+        },
+        email: {
+            type: String,
+            required:true
         }
     }]
+    // user: {
+    //     email:  {
+    //         type: String,
+    //         required: true
+    //     },
+    //     userId: {
+    //         type: Schema.Types.ObjectId,
+    //         ref: 'User',
+    //     }
+    // }
 });
 
 campaignSchema.pre('save', async function(next) {
@@ -44,7 +72,7 @@ campaignSchema.pre('save', async function(next) {
         const users = await User.find({_id: { $in: this.assignedUsers.map(user => user.userId) }});
         this.assignedUsers = this.assignedUsers.map(user => {
             const foundUser = users.find(u => u._id.toString() === user.userId.toString());
-            return { userId: user.userId, name: foundUser ? foundUser.name : 'Unknown' };
+            return { userId: user.userId, name: foundUser ? foundUser.name : 'Unknown',  email: user.email }; 
         });
         next();
     } catch (error) {

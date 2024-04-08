@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 const URL_SERV = 'http://localhost:3000';
 
 const DeleteUser = () => {
-    const [userId, setUserId] = useState('');
+    const [email, setEmail] = useState('');
   const [userIds, setUserIds] = useState([]);
   const [errors, setErrors] = useState('');
 
@@ -14,10 +14,13 @@ const DeleteUser = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`${URL_SERV}/users`);
+        const response = await fetch(`${URL_SERV}/users`,{
+          method: 'GET',
+          credentials: 'include',
+        });
         if (response.ok) {
           const data = await response.json();
-          setUserIds(data.userIds);
+          setUserIds(data.emails);
         } else {
           throw new Error('Failed to fetch users');
         }
@@ -30,20 +33,20 @@ const DeleteUser = () => {
 
   const handleChange = (e) => {
     const { value } = e.target;
-    if (!userIdRegex.test(value)) {
-      setErrors(
-        'Assigned user ID must be 24 characters long and contain only lowercase letters (a-z) and digits (0-9)'
-      );
-    } else {
-      setErrors('');
-    }
-    setUserId(value);
+    // if (!userIdRegex.test(value)) {
+    //   setErrors(
+    //     'Assigned user ID must be 24 characters long and contain only lowercase letters (a-z) and digits (0-9)'
+    //   );
+    // } else {
+    //   setErrors('');
+    // }
+    setEmail(value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${URL_SERV}/deleteUser/${userId}`, { 
+      const response = await fetch(`${URL_SERV}/deleteUser/${email}`, { 
         method: 'DELETE' 
     });
     if(response.ok){
@@ -54,7 +57,7 @@ const DeleteUser = () => {
     }
     } catch (error) {
       console.error('Failed to remove user:', error);
-      toast.error('Failed to remove user');
+      toast.error('Cannot delete user as the user is assigned to one or more campaigns.');
     }
   };
 
@@ -71,7 +74,7 @@ const DeleteUser = () => {
                   <select
                     className={`form-control ${errors && 'is-invalid'}`}
                     id="userId"
-                    value={userId}
+                    value={email}
                     onChange={handleChange}
                     maxLength={24}
                     required

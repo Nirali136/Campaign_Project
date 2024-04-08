@@ -1,13 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import CampaignDetails from './CampaignDetails';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
+import { Transition } from 'react-transition-group';
+
+const URL_SERV = 'http://localhost:3000';
+
 
 const CampaignList = ({ campaigns }) => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(2);
   const navigate = useNavigate();
-  const location = useLocation();
+  const { isLoggedIn, user } = useAuth(); 
+  const [show, setShow] = useState({});
+  const [enrolledCampaigns, setEnrolledCampaigns] = useState([]);
+
+  // useEffect(() => {
+  //   if (isLoggedIn && user) {
+  //     setEnrolledCampaigns(user.enrolledCampaigns || []);
+  //   }
+  // }, [isLoggedIn, user]);
 
   if (!Array.isArray(campaigns)) {
     return <p>Loading campaigns...</p>;
@@ -20,6 +34,31 @@ const CampaignList = ({ campaigns }) => {
   const totalPages = Math.ceil(campaigns.length / itemsPerPage);
 
   const maxLength = 10;
+
+  const handleenroll = async (campaignId) => {
+    try {
+      const response = await fetch(`${URL_SERV}/enrolledCampaign/${campaignId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      if(response.ok){
+        setShow(prevState => ({ 
+          ...prevState,
+           [campaignId]: true }));
+        console.log('User enrolled successfully');
+        toast.success('User enrolled successfully');
+      }else{
+        throw new Error('Server error');
+      } 
+    } catch (error) {
+      console.error('failed to enroll campaign:', error);
+    }
+  }
+
+  // const filteredCampaigns = currentItems.filter(campaign => !enrolledCampaigns.includes(campaign._id));
 
   const goToPage = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -47,10 +86,15 @@ const CampaignList = ({ campaigns }) => {
       <div className="row justify-content-center">
         <div className="col-md-8">
         {currentItems.map(campaign => (
+          <Transition key={campaign._id} in={show[campaign._id] !== true} timeout={{
+            exit:500
+          }}>
+            {state => (
             <div
               key={campaign._id}
-              className="card mt-3"
+              className={`card mt-3 trs trs-${state}`}
             >
+              {console.log(state)}
               <div className="card-header"><strong>{campaign.title}</strong></div>
               <div className="row no-gutters">
                 <div className="col-md-4">
@@ -60,13 +104,18 @@ const CampaignList = ({ campaigns }) => {
                   <div className="card-body">
                     <p className="card-text"><strong>Type:</strong> {campaign.type}</p>
                     <p className="card-text"><strong>Description:</strong> {campaign.description.length > maxLength ? campaign.description.substring(0, maxLength) + '...' : campaign.description}</p>
-                    <div className="text-right"> 
+                    <div className="text-left"> 
                       <Link to={`/campaigndetails/${campaign._id}`} className="btn btn-orange">View Details</Link>
+                      {(isLoggedIn && user) ? (
+                      <Link to='' className='btn btn-warning mx-3' onClick={()=>handleenroll(campaign._id)} disabled={show[campaign._id] === true}>{show[campaign._id] ? "Enrolled" : "Enroll Now!"}</Link>
+                      ) : null}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+            )}
+            </Transition>
           ))}
         </div> 
         <div className="pagination fixed-bottom">

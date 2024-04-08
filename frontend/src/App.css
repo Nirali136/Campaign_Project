@@ -141,4 +141,18 @@
       position: relative; /* or whatever appropriate */
     }
   }
+
+  /* transition css */
+
+.trs {
+    opacity: 1;
+    transition: all 1s ease;
+}
+
+.trs.trs-exited { 
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+
   

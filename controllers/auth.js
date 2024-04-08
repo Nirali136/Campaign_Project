@@ -64,7 +64,8 @@ exports.postLogin = async (req, res) => {
 }
 
 exports.getLogin = async (req, res) => {
-    res.status(200).json({ message: "Login page" });
+    res.status(200).json({ message: `Login page` });
+    //console.log('login:',req.user);
 }
 
 exports.postLogout = (req, res) => {
@@ -72,7 +73,7 @@ exports.postLogout = (req, res) => {
         if(err){
             res.status(500).json({ message: "Error occurred during logout", error: err });
         } else {
-            res.status(200).json({ message: "Logout successful" });
+            res.status(200).json({ message: "Logout successful", user:req.user });
         }
     });
 }
@@ -103,7 +104,7 @@ exports.sendResetPasswordEmail = async (req, res) => {
             from: 'niralipatel1362@gmail.com',
             to: email,
             subject: 'Password Reset',
-            text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n`
+            text: `You are receiving this because you have requested the reset of the password for your account.\n\n`
                 + `Please click on the following link, or paste this into your browser to complete the process:\n\n`
                 + `http://localhost:5173/reset/${token}\n\n`
                 + `If you did not request this, please ignore this email and your password will remain unchanged.\n`

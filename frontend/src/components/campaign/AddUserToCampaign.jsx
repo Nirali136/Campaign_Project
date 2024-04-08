@@ -8,8 +8,9 @@ const URL_SERV = 'http://localhost:3000';
 const AddUserToCampaign = () => {
     
       const [userId, setUserId] = useState('');
+      const [userName, setUserName] = useState([]);
       const [errors, setErrors] = useState('');
-      const [userIds, setUserIds] = useState([]);  //array of user ids that are already in the campaign.
+      const [userIds, setUserIds] = useState([]);  
       const [selectedUserIds, setSelectedUserIds] = useState([]);
       const [assignedUsers, setAssignedUsers] = useState([]); 
       const {campaignId} = useParams();
@@ -19,10 +20,13 @@ const AddUserToCampaign = () => {
       useEffect(() => {
         const fetchUserIds = async () => {
           try {
-            const response = await fetch(`${URL_SERV}/users`);
+            const response = await fetch(`${URL_SERV}/users`,{
+              method: 'GET',
+              credentials: 'include',
+            });
             if (response.ok) {
               const data = await response.json();
-              setUserIds(data.userIds);
+              setUserIds(data.emails);
             } else {
               throw new Error('Failed to fetch user IDs');
             }
@@ -37,7 +41,10 @@ const AddUserToCampaign = () => {
       useEffect(() => {
         const fetchAssignedUsers = async () => {
             try {
-                const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignedUsers`);
+                const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignedUsers`,{
+                  method: 'GET',
+                  credentials: 'include',
+                });
                 if (response.ok) {
                     const data = await response.json();
                     setAssignedUsers(data.assignedUsers);
@@ -58,12 +65,13 @@ const AddUserToCampaign = () => {
       const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-          await Promise.all(selectedUserIds.map(async (userId) => {
-          const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignUser/${userId}`, {
+          await Promise.all(selectedUserIds.map(async (email) => {
+          const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignUser/${email}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include'
           });
           if(response.ok){
             console.log('User added successfully');
@@ -76,7 +84,7 @@ const AddUserToCampaign = () => {
           setSelectedUserIds([]); 
         } catch (error) {
           console.error('failed to add user:', error);
-          toast.error('User is alredy assigned to campign');
+          //toast.error('User is alredy assigned to campign');
         }
       };
 

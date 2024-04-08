@@ -25,8 +25,15 @@ const UpdatePassword = () => {
         let errorMessage = '';
         switch (name) {
             case 'newPassword':
-                if (value.length < 6) {
-                    errorMessage = 'Password must be at least 6 characters long';
+                const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{5,16}$/;
+                if(value.trim() === ''){
+                  errorMessage = "Password is requried";
+                }
+                else if (value.trim().length < 5) {
+                    errorMessage = 'Password must be at least 5 characters long';
+                }
+                else if(!passwordRegex.test(value)){
+                  errorMessage = "Password should contain minimum one uppercase letter, one lowercase letter, one number and one special character.";
                 }
                 break;
             default:
@@ -58,6 +65,7 @@ const UpdatePassword = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(formData),
             });
             if (response.ok) {

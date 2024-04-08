@@ -5,20 +5,23 @@ import { toast } from 'react-toastify';
 const URL_SERV = 'http://localhost:3000';
 
 const RemoveUserFromCampaign = () => {
-  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState('');
   const [errors, setErrors] = useState('');
   const [assignedUsers, setAssignedUsers] = useState([]);
   const { campaignId } = useParams();
 
-  const userIdRegex = /^[a-z0-9]{24}$/;
+  
 
   useEffect(() => {
     const fetchAssignedUsers = async () => {
       try {
-        const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignedUsers`);
+        const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/assignedUsers`,{
+          method: 'GET',
+          credentials: 'include',
+        });
         if (response.ok) {
           const data = await response.json();
-          setAssignedUsers(data.assignedUsers.map(user => user.userId));
+          setAssignedUsers(data.assignedUsers.map(user => user.email));
         } else {
           throw new Error('Failed to fetch assigned users');
         }
@@ -31,21 +34,23 @@ const RemoveUserFromCampaign = () => {
 
   const handleChange = (e) => {
     const { value } = e.target;
-    if (!userIdRegex.test(value)) {
-      setErrors(
-        'Assigned user ID must be 24 characters long and contain only lowercase letters (a-z) and digits (0-9)'
-      );
-    } else {
-      setErrors('');
-    }
+    // const userIdRegex = /^[a-z0-9]{24}$/;
+    //  if (!userIdRegex.test(value)) {
+    //   setErrors(
+    //     'Assigned user ID must be 24 characters long and contain only lowercase letters (a-z) and digits (0-9)'
+    //   );
+    // } else {
+    //   setErrors('please select userId');
+    // }
     setUserId(value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/removeUser/${userId}`, {
-        method: 'DELETE'
+      const response = await fetch(`${URL_SERV}/admin/campaign/${campaignId}/removeUser/${email}`, {
+        method: 'DELETE',
+        credentials: 'include'
       })
       if(response.ok){
         console.log('User removed successfully');
@@ -66,13 +71,14 @@ const RemoveUserFromCampaign = () => {
           <div className="card mt-3">
             <div className="card-header">Remove User from Campaign</div>
             <div className="card-body">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} noValidate>
                 <div className="form-group">
                   <label htmlFor="userId">User ID:</label>
                   <select
                     className={`form-control ${errors && 'is-invalid'}`}
                     id="userId"
-                    value={userId}
+                    value={email}
+                    name='user'
                     onChange={handleChange}
                     maxLength={24}
                     required

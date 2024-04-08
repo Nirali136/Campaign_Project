@@ -21,8 +21,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Allow requests from this origin
-    credentials: true, // Allow credentials (cookies)
+    origin: 'http://localhost:5173', 
+    credentials: true, 
   }));
 
 const store = new MongoDBStore({
@@ -35,10 +35,7 @@ app.use(
         secret: 'my secret', 
         resave: false, 
         saveUninitialized: false, 
-        store: store,
-        cookie: {
-            maxAge: 1000 * 60 * 60 * 24 
-        }
+        store: store
     })
     )
 
@@ -65,6 +62,7 @@ const fileFilter = (req, file, cb) => {
 app.use(multer({storage: fileStorage, fileFilter: fileFilter  }).array('imageUrl'));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
+
 app.use((req, res, next) => {
     if(!req.session.user) {
         return next();
@@ -81,9 +79,11 @@ app.use((req, res, next) => {
             throw new Error(err);
         });
 })
-app.use('/admin',adminRoutes);
+
+
 app.use(authRoutes);
 app.use(userRoutes);
+app.use('/admin',adminRoutes);
 
 mongoose.connect(MONGODB_URI)
 .then(result => {

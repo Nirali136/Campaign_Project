@@ -25,7 +25,10 @@ const ForgotPassword = () => {
         switch (name) {
             case 'email':
                 const emailRegex = /^\S+@\S+\.\S+$/;
-                if (!emailRegex.test(value)) {
+                if(value.trim() === ''){
+                    errorMessage = "Email is requried";
+                  }
+                else if (!emailRegex.test(value)) {
                     errorMessage = 'Please enter a valid email address';
                 }
                 break;
@@ -49,7 +52,7 @@ const ForgotPassword = () => {
         }
         if (hasErrors) {
           toast.error('Please fill out all fields correctly.');
-          return;
+          return ;
         }
 
         try {
@@ -58,6 +61,7 @@ const ForgotPassword = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(formData),
             });
             if (response.ok) {
