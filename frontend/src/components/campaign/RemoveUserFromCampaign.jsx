@@ -34,15 +34,7 @@ const RemoveUserFromCampaign = () => {
 
   const handleChange = (e) => {
     const { value } = e.target;
-    // const userIdRegex = /^[a-z0-9]{24}$/;
-    //  if (!userIdRegex.test(value)) {
-    //   setErrors(
-    //     'Assigned user ID must be 24 characters long and contain only lowercase letters (a-z) and digits (0-9)'
-    //   );
-    // } else {
-    //   setErrors('please select userId');
-    // }
-    setUserId(value);
+    setEmail(value);
   };
 
   const handleSubmit = async (e) => {

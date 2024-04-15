@@ -63,7 +63,8 @@ const App =()=> {
   }, [location]);
 
   useEffect(() => {
-    if(location.pathname === `/updatecampaign`){
+    const isCampaignPage = location.pathname === `/updatecampaign` || location.pathname.startsWith('/campaigndetails/');
+    if(isCampaignPage) {
     const fetchCampaigns = async () => {
       try {
         const response = await fetch(`${URL_SERV}/admin/updatecampaigns`, {
@@ -132,6 +133,7 @@ const App =()=> {
       body: formDataWithImage,
     });
     if(response.ok){
+    console.log(response);
     const updatedCampaign = await response.json();
     const updatedCampaigns = campaigns.map(campaign =>
       campaign._id === editId ? updatedCampaign : campaign

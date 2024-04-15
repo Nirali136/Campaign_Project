@@ -41,9 +41,11 @@ app.use(
 
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb)=> {
+        console.log(file);
         cb(null, 'images');
     },
     filename: (req, file, cb) => {
+        console.log(file);
         cb(null, `${uuidv4()}-${file.originalname}`);
     }
 })
@@ -59,7 +61,7 @@ const fileFilter = (req, file, cb) => {
        }
 }
 
-app.use(multer({storage: fileStorage, fileFilter: fileFilter  }).array('imageUrl'));
+app.use(multer({storage: fileStorage, fileFilter: fileFilter }).array('imageUrl'));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 
@@ -84,6 +86,9 @@ app.use((req, res, next) => {
 app.use(authRoutes);
 app.use(userRoutes);
 app.use('/admin',adminRoutes);
+
+
+
 
 mongoose.connect(MONGODB_URI)
 .then(result => {

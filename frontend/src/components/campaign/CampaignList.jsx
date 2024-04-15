@@ -94,7 +94,6 @@ const CampaignList = ({ campaigns }) => {
               key={campaign._id}
               className={`card mt-3 trs trs-${state}`}
             >
-              {console.log(state)}
               <div className="card-header"><strong>{campaign.title}</strong></div>
               <div className="row no-gutters">
                 <div className="col-md-4">

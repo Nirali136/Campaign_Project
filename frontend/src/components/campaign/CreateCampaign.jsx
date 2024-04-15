@@ -1,37 +1,47 @@
 import React, { useEffect, useState } from "react";
-import { render } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { X } from "react-bootstrap-icons"
 import Select from "react-select";
-
+ 
 const URL_SERV = 'http://localhost:3000';
-
+ 
 const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUpdate}) => {
-
+ 
   const { id } = useParams();
  const [initialFormData, setInitialFormData] = useState({...formData});
  const [imageFile, setImageFile] = useState([]);
+ const [imagePreviews, setImagePreviews] = useState([]);
+ const [oldImagePreviews, setOldImagePreviews] = useState([]);
  const [errors, setErrors] = useState({});
  const [userIds, setUserIds] = useState([]);
  const [selectedUserIds, setSelectedUserIds] = useState([]);
  const navigate = useNavigate();
- const location = useLocation();
-
+ const [image ,setImage] = useState([]);
+ 
  let errorMessage = '';
   let err =  {};
   let formIsValid = true;
-
+ 
   useEffect(() => {
     if (editing && campaigns.length > 0) {
       const campaign = campaigns.find(campaign => campaign._id === id);
       if (campaign) {
-        setInitialFormData({ ...campaign});
+        setInitialFormData({ ...campaign, assignedUsers: []});
+        if (campaign.imageUrl) {
+          setImage(campaign.imageUrl);
+          console.log('image',image);
+          const previews = campaign.imageUrl.map((imageUrl) => {
+            return `http://localhost:3000/${imageUrl}`;
+          });
+          setOldImagePreviews(previews);
+        }
       }
     } else {
       setInitialFormData({ ...formData });
     }
-
+ 
   }, [campaigns, formData, editing, id]);
-
+ 
   useEffect(() => {
     const fetchUserIds = async () => {
       try {
@@ -51,16 +61,27 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
     };
     fetchUserIds();
   }, []);
+ 
+  const handleOldDelete = async (index) => {
+    const updatedOldImagePreviews = [...oldImagePreviews];
+    updatedOldImagePreviews.splice(index, 1);
+    setOldImagePreviews(updatedOldImagePreviews);
 
-  const handleImageUpload = async (e) => {
-     const files = Array.from(e.target.files);
-     if(files.length > 5){
-      e.preventDefault();
-      alert(`Cannot upload files more than 5`);
-      formIsValid = false;
-      return;
-     }
-     setImageFile(files);
+    const oldimage = [...image];
+    oldimage.splice(index,1);
+    setImage(oldimage);
+  };  
+
+  const handleNewDelete = async (index) => {
+    const updatedNewImagePreviews = [...imagePreviews];
+    updatedNewImagePreviews.splice(index, 1);
+    setImagePreviews(updatedNewImagePreviews);
+
+    const oldImageFile = [...imageFile]
+    console.log("oldimage",oldImageFile);
+    oldImageFile.splice(index, 1);
+    console.log("handleNewDelete",oldImageFile);
+    setImageFile(oldImageFile);
   }
 
   const handleChange = (e) => {
@@ -68,20 +89,20 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
     errorMessage = validateField(name, value);
     err = {...err,  [name]: errorMessage};
     setErrors(err);
-    if(editing && name === "type" && value === "public"){
+    if(editing){
       setInitialFormData({ ...initialFormData, [name]: value});
     }else{
       setInitialFormData({...initialFormData, [name]:value});
       //onChange(e);
     }
   };
-
+ 
   const handleSelectChange = (selectedOptions) => {
     const selectedIds = selectedOptions.map(option => option.value);
-    setSelectedUserIds(selectedIds); 
+    setSelectedUserIds(selectedIds);
     setInitialFormData({ ...initialFormData, assignedUsers: selectedIds });
   };
-
+ 
   const validateField = (name, value) => {
     switch (name) {
       case 'title':
@@ -92,9 +113,10 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
         }
         break;
       case "imageUrl":
-        const allowedExtensions = ["jpg", "jpeg", "png"];
-        const fileSizeLimit = 5 * 1024 * 1024; // 5 MB limit
-        if (imageFile.length === 0) {
+        const fileSizeLimit = 5 * 1024 * 1024;
+        console.log(imagePreviews.length);
+        console.log(oldImagePreviews.length);
+        if (imagePreviews.length == 0 && oldImagePreviews.length == 0) {
           return "please select an image";
         } else {
           if (value.size > fileSizeLimit) {
@@ -111,12 +133,40 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
           return 'Description must be at most 200 characters long';
         }
       break;
+      case 'assignedUsers':
+        console.log(value);
+        if(type.value === 'private' && value.length === 0){
+          return "Atleast one user should be assigned to the Campaign";
+        }
+      break;
       default:
-        break;
+      break;
     }
   };
-
-
+ 
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if(files.length > 5){
+     e.preventDefault();
+     alert(`Cannot upload files more than 5`);
+     formIsValid = false;
+     return;
+    }
+    const previews = await Promise.all(files.map(file => {
+      console.log("File extension:", file.name.split('.').pop());
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    }));
+    console.log(previews);
+    const file = [...files];
+    console.log('file:',file);
+    setImagePreviews(prevPreviews => [...prevPreviews, ...previews]);
+    setImageFile(file);
+ }
+ 
   const handleSubmit =async (e) => {
     e.preventDefault();
     formIsValid = true;
@@ -127,27 +177,29 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
         formIsValid = false;
       }
     }
-    setErrors(err); 
-
+    setErrors(err);
+ 
     if(formIsValid){
       const formDataWithImage = new FormData();
       const { imageUrl, ...formDataWithoutImage } = initialFormData;
       for (const key in formDataWithoutImage) {
         formDataWithImage.append(key, initialFormData[key]);
       }
+      formDataWithImage.append('oldimage', image);
       imageFile.forEach((file)=> {
         formDataWithImage.append( "imageUrl" , file );
+        console.log("handlesubmit:",file);
       })
-      // formDataWithImage.append("imageUrl", imageFile);
+     // formDataWithImage.append("imageUrl", imageFile);
     if (editing) {
-      await onUpdate(formDataWithImage,initialFormData._id); 
+      await onUpdate(formDataWithImage,initialFormData._id);
     } else {
       await onSubmit(e, formDataWithImage);
     }
     navigate('/campaigns', { replace: true });
   }
   };
-  
+ 
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -200,6 +252,33 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                     required
                   />
                   {errors.imageUrl && <div className="invalid-feedback">{errors.imageUrl}</div>}
+                  <div className="form-group">
+                  <div className="image-previews my-2">
+                  {oldImagePreviews.map((preview, index) => (
+                    <div key={index} style={{ position: 'relative', display: 'inline-block' , textAlign: 'center'}}
+                    >
+                      <img
+                      src={preview}
+                      alt={`${index}`}
+                      style={{ width: '100px', height: 'auto', marginRight: '10px' }}
+                      id="old-image-preview"
+                      />
+                      <div style={{ position: 'absolute', top: '-0%', left: '90%', transform: 'translate(-50%, -50%)' }}>
+                        <X onClick={() => handleOldDelete(index)} className="w-5 h-5 border border-danger rounded-circle bg-danger"/>
+                      </div>
+                    </div>
+                  ))}
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} style={{ position: 'relative', display: 'inline-block' , textAlign: 'center'}}
+                    >
+                    <img src={preview} alt={`${index}`} style={{ width: "100px", height: "auto", marginRight: "10px" }} />
+                    <div style={{ position: 'absolute', top: '-0%', left: '90%', transform: 'translate(-50%, -50%)' }}>
+                      <X onClick={()=>handleNewDelete(index)} className="w-5 h-5 border border-danger rounded-circle bg-danger"/>
+                    </div>
+                    </div>
+                  ))}
+                  </div>
+                  </div>
                 </div>
                 <div className="form-group">
                   <label htmlFor="description">Description</label>
@@ -227,7 +306,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                       options={userIds.map(userId => ({ value: userId, label: userId }))}
                       isMulti
                       required
-                    />             
+                    />            
                     {errors.assignedUsers && <div className="invalid-feedback">{errors.assignedUsers}</div>}
                   </div>
                 )}
@@ -242,5 +321,5 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
     </div>
   );
 };
-
+ 
 export default CreateCampaign;

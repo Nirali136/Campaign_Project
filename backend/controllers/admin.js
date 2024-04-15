@@ -119,12 +119,18 @@ exports.getCampaign = async (req,res) => {
 
 exports.updateCampaign = async (req, res) => {
     const campaignId = req.params.campaignId;
-    let { title, type, description } = req.body;
+    let { title, type, description, oldimage } = req.body;
     const newImages = req.files;
     let imageUrl;
 
     if (newImages) {
         imageUrl = newImages.map((file) => file.path.replace('\\', '/'));
+    }
+
+    if (oldimage) {
+        oldimage.split(",").map(old=>{
+            imageUrl.push(old);
+        });
     }
 
     const errors = validationResult(req);
@@ -161,9 +167,8 @@ exports.updateCampaign = async (req, res) => {
         }
 
         if (imageUrl) {
-            campaign.imageUrl = campaign.imageUrl ? campaign.imageUrl.concat(imageUrl) : imageUrl;
+            campaign.imageUrl = imageUrl;
         }
-
         campaign.title = title;
         campaign.type = type;
         campaign.description = description;
