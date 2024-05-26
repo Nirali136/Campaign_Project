@@ -10,9 +10,6 @@ const AuthGuard = ({ children }) => {
   if (isLoggedIn && user && user.email === 'niralipatel13006@gmail.com') {
     return <>{children}</>;
   } 
-  // else {
-  //   return <Navigate to="/login" />;
-  // }
 };
 
 export default AuthGuard;

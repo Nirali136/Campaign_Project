@@ -21,12 +21,11 @@ exports.getCampaigns = async (req, res) => {
 
             campaigns = await Campaign.find({
              $or:[
-                    {   _id :  {$nin : enrolledCampaigns},
+                    { 
                         type: 'public'     
                     }
                     , { 
                         type: 'private', 
-                        _id :  {$nin : enrolledCampaigns},
                         "assignedUsers.userId": userId 
                     }  
                 ]

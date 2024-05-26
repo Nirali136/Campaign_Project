@@ -99,7 +99,7 @@ const AddUserToCampaign = () => {
                 <div className="card-body">
                   <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                      <label htmlFor="userId">User IDs:</label>
+                      <label htmlFor="userId">User Email:</label>
                       <Select
                         className={`form-control ${errors && 'is-invalid'}`}
                         id="userId"

@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { Transition } from 'react-transition-group';
+import { useDispatch } from 'react-redux';
+import { setLoading } from '../store/AuthSlice';
+import Loader from '../common/Loader';
 
 const URL_SERV = 'http://localhost:3000';
 
@@ -10,7 +13,7 @@ const EnrolledCampaigns = () => {
   const { isLoggedIn, user } = useAuth();
   const [enrolledCampaigns, setEnrolledCampaigns] = useState([]);
   const [show, setShow] = useState({});
- // const [show, setShow] = useState(true);
+  const [loading,setLoading] = useState(false);
   const userId = user._id;
 
   useEffect(() => {
@@ -41,16 +44,16 @@ const EnrolledCampaigns = () => {
   }, [isLoggedIn, user]);
 
   const handleunenroll = async (campaignId) => {
+    setLoading(true);
+    console.log('load',loading);
     try {
       const response = await fetch(`${URL_SERV}/removeCampaign/${campaignId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
       if(response.ok){ 
-        setShow(prevShow => ({
-          ...prevShow,
-          [campaignId]: false
-        }));
+        const pre = prevShow => ({...prevShow, [campaignId]: false});
+        setShow(pre);
         setTimeout(() => {
           setEnrolledCampaigns(prevCampaigns => prevCampaigns.filter(campaign => campaign._id !== campaignId));
         }, 1000); 
@@ -63,7 +66,11 @@ const EnrolledCampaigns = () => {
     } catch (error) {
       console.error('failed to enroll campaign:', error);
       toast.error('failed to unenroll');
+    } finally{
+      setLoading(false);
+      console.log('loaddd',loading);
     }
+    
   }
 
   if (!isLoggedIn || !user || enrolledCampaigns.length === 0) {
@@ -71,6 +78,8 @@ const EnrolledCampaigns = () => {
   }
 
   return (
+    <>
+    {loading ? <Loader/>:
     <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-8">
@@ -83,24 +92,23 @@ const EnrolledCampaigns = () => {
               key={campaign._id}
               className={`card mt-3 trs trs-${state}`}
             >
-              {console.log(state)}
-
-              <div className="card-header"><strong>{campaign.title}</strong></div>
-              <div className="row no-gutters">
-                <div className="col-md-4">
-                  <img src={`http://localhost:3000/${campaign.imageUrl[0]}`} className='image-fluid w-100 h-100 rounded' alt={campaign.title} />
-                </div>
-                <div className="col-md-8">
-                  <div className="card-body">
-                    <p className="card-text"><strong>Type:</strong> {campaign.type}</p>
-                    <p className="card-text"><strong>Description:</strong> {campaign.description}</p>
-                    <div className="text-left"> 
-                      <Link to={`/campaigndetails/${campaign._id}`} className="btn btn-orange">View Details</Link>
-                      <Link to='' className='btn btn-warning mx-3' onClick={()=>handleunenroll(campaign._id)}>{show[campaign._id] ? 'UnEnroll' : 'UnEnrolled'}</Link>
-                    </div>
+            {console.log(state)}
+            <div className="card-header"><strong>{campaign.title}</strong></div>
+            <div className="row no-gutters">
+              <div className="col-md-4">
+                <img src={`http://localhost:3000/${campaign.imageUrl[0]}`} className='image-fluid w-100 h-100 rounded' alt={campaign.title} />
+              </div>
+              <div className="col-md-8">
+                <div className="card-body">
+                  <p className="card-text"><strong>Type:</strong> {campaign.type}</p>
+                  <p className="card-text"><strong>Description:</strong> {campaign.description}</p>
+                  <div className="text-left">
+                    <Link to={`/campaigndetails/${campaign._id}`} className="btn btn-orange">View Details</Link>
+                    <Link to='' className='btn btn-warning mx-3' onClick={()=>handleunenroll(campaign._id)}>{show[campaign._id] ? 'UnEnroll' : 'UnEnrolled'}</Link>
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           )}
           </Transition>
@@ -108,6 +116,8 @@ const EnrolledCampaigns = () => {
         </div> 
       </div>
     </div>
+}
+  </>
   )
 }
 

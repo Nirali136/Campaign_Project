@@ -154,5 +154,27 @@
   transform: translateX(-100%);
 }
 
+/* preview image css */
+
+.image-preview {
+  position: relative; 
+  display: inline-block;
+  text-align: center;
+}
+
+
+.image-preview img {
+  width: 100px; 
+  height: auto; 
+  margin-right: 10px;
+}
+
+.x-mark{
+  position: absolute; 
+  top: -0%;
+  left: 90%; 
+  transform: translate(-50%, -50%);
+}
+
 
   

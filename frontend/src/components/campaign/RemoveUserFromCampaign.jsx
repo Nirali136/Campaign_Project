@@ -65,7 +65,7 @@ const RemoveUserFromCampaign = () => {
             <div className="card-body">
               <form onSubmit={handleSubmit} noValidate>
                 <div className="form-group">
-                  <label htmlFor="userId">User ID:</label>
+                  <label htmlFor="userId">User Email:</label>
                   <select
                     className={`form-control ${errors && 'is-invalid'}`}
                     id="userId"
@@ -75,7 +75,7 @@ const RemoveUserFromCampaign = () => {
                     maxLength={24}
                     required
                   >
-                    <option value="">Select User ID</option>
+                    <option value="">Select User Email</option>
                     {assignedUsers.map(id => (
                       <option key={id} value={id}>{id}</option>
                     ))}

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-const URL_SERV = 'http://localhost:3000';
-
 
 const UpdateCampaign = ({campaigns, onEdit, onDelete }) => {
 
@@ -49,5 +47,3 @@ const UpdateCampaign = ({campaigns, onEdit, onDelete }) => {
 }
 
 export default UpdateCampaign
-
-// style={{ position: "absolute", bottom: "10px", right: "10px" }}

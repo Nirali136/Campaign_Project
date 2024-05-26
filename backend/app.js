@@ -82,13 +82,9 @@ app.use((req, res, next) => {
         });
 })
 
-
 app.use(authRoutes);
 app.use(userRoutes);
 app.use('/admin',adminRoutes);
-
-
-
 
 mongoose.connect(MONGODB_URI)
 .then(result => {

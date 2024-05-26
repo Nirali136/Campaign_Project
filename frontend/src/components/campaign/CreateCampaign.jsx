@@ -18,9 +18,7 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
  const navigate = useNavigate();
  const [image ,setImage] = useState([]);
  
- let errorMessage = '';
-  let err =  {};
-  let formIsValid = true;
+ let formIsValid = true;
  
   useEffect(() => {
     if (editing && campaigns.length > 0) {
@@ -86,13 +84,15 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    errorMessage = validateField(name, value);
-    err = {...err,  [name]: errorMessage};
+    const errorMessage = validateField(name, value);
+    const err = {...errors,  [name]: errorMessage};
     setErrors(err);
     if(editing){
-      setInitialFormData({ ...initialFormData, [name]: value});
+      const initialdata = { ...initialFormData, [name]: value};
+      setInitialFormData(initialdata);
     }else{
-      setInitialFormData({...initialFormData, [name]:value});
+      const initialdata = { ...initialFormData, [name]: value}
+      setInitialFormData(initialdata);
       //onChange(e);
     }
   };
@@ -100,7 +100,8 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
   const handleSelectChange = (selectedOptions) => {
     const selectedIds = selectedOptions.map(option => option.value);
     setSelectedUserIds(selectedIds);
-    setInitialFormData({ ...initialFormData, assignedUsers: selectedIds });
+    const initialdata = { ...initialFormData, assignedUsers: selectedIds }
+    setInitialFormData(initialdata);
   };
  
   const validateField = (name, value) => {
@@ -172,11 +173,13 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
     formIsValid = true;
     for (const key in initialFormData) {
       const errorMessage = validateField(key, initialFormData[key]);
-      err[key] = errorMessage;
+      errors[key] = errorMessage;
       if (errorMessage) {
         formIsValid = false;
       }
     }
+    const err = {...errors};
+    console.log("error:",err);
     setErrors(err);
  
     if(formIsValid){
@@ -190,7 +193,6 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
         formDataWithImage.append( "imageUrl" , file );
         console.log("handlesubmit:",file);
       })
-     // formDataWithImage.append("imageUrl", imageFile);
     if (editing) {
       await onUpdate(formDataWithImage,initialFormData._id);
     } else {
@@ -245,7 +247,6 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                     className={`form-control ${errors.imageUrl && "is-invalid"}`}
                     id="imageUrl"
                     name="imageUrl"
-                    // value={initialFormData.imageUrl.length.toString()}
                     accept="image/*"
                     onChange={handleImageUpload}
                     multiple
@@ -255,24 +256,22 @@ const CreateCampaign = ({ campaigns ,formData, onChange, onSubmit, editing, onUp
                   <div className="form-group">
                   <div className="image-previews my-2">
                   {oldImagePreviews.map((preview, index) => (
-                    <div key={index} style={{ position: 'relative', display: 'inline-block' , textAlign: 'center'}}
+                    <div key={index} className="image-preview"
                     >
                       <img
                       src={preview}
                       alt={`${index}`}
-                      style={{ width: '100px', height: 'auto', marginRight: '10px' }}
-                      id="old-image-preview"
                       />
-                      <div style={{ position: 'absolute', top: '-0%', left: '90%', transform: 'translate(-50%, -50%)' }}>
+                      <div className="x-mark">
                         <X onClick={() => handleOldDelete(index)} className="w-5 h-5 border border-danger rounded-circle bg-danger"/>
                       </div>
                     </div>
                   ))}
                   {imagePreviews.map((preview, index) => (
-                    <div key={index} style={{ position: 'relative', display: 'inline-block' , textAlign: 'center'}}
+                    <div key={index} className="image-preview"
                     >
-                    <img src={preview} alt={`${index}`} style={{ width: "100px", height: "auto", marginRight: "10px" }} />
-                    <div style={{ position: 'absolute', top: '-0%', left: '90%', transform: 'translate(-50%, -50%)' }}>
+                    <img src={preview} alt={`${index}`}/>
+                    <div className="x-mark">
                       <X onClick={()=>handleNewDelete(index)} className="w-5 h-5 border border-danger rounded-circle bg-danger"/>
                     </div>
                     </div>

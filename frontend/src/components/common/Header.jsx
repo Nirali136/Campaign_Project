@@ -15,11 +15,6 @@ const Header = () => {
     }
   };
 
-  const handleAddCampaignClick = () => {
-    // Perform any additional logic if needed
-    // Reload the page
-    //window.location.reload('/createcampign');
-  };
 
   return (
     <header>
@@ -56,7 +51,7 @@ const Header = () => {
             {(isLoggedIn && user && user.email === 'niralipatel13006@gmail.com') ? (
               <>
             <li className="nav-item">
-              <NavLink to="createcampaign" className="nav-link" onClick={handleAddCampaignClick}>Add Campaign</NavLink>
+              <NavLink to="createcampaign" className="nav-link">Add Campaign</NavLink>
             </li>
             <li className="nav-item">
               <NavLink to="updatecampaign" className="nav-link">Update Campaign</NavLink>

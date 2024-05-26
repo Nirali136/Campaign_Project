@@ -38,7 +38,7 @@ const App =()=> {
   const location = useLocation( );
 
   useEffect(() => {
-    if(location.pathname !== `/updatecampaign`){
+    if (location.pathname === "/login" || location.pathname === "/signup") return;
     const fetchCampaigns = async () => {
       try {
         const response = await fetch(`${URL_SERV}/admin/campaigns`, {
@@ -52,7 +52,6 @@ const App =()=> {
       }
     };
     fetchCampaigns();
-  }
   }, [location]);
 
   useEffect(() => {
@@ -83,10 +82,8 @@ const App =()=> {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    const form =  { ...formData ,[name]:value};
+    setFormData(form);
   };
 
   const handleSubmit =async (e, formDataWithImage) => {
@@ -105,7 +102,8 @@ const App =()=> {
       if(response.ok){
         const data = await response.json();
         console.log('Campaign created successfully:', data);
-        setCampaigns([...campaigns, data]);
+        const campaign = [...campaigns,data];
+        setCampaigns(campaign);
         toast.success('Campaign created successfully');
       }else{
         console.log('server error');
@@ -117,7 +115,6 @@ const App =()=> {
 
   const handleEdit = (campaignId) => {
     setEditing(true);
-    console.log('handleedit');
     setEditId(campaignId);
   }
 
@@ -126,9 +123,6 @@ const App =()=> {
       console.log('ed');
     const response = await fetch(`${URL_SERV}/admin/campaign/${editId}`, {
       method: 'PUT',
-      // headers: {
-      //   'Content-Type': 'application/json',
-      // },
       credentials: 'include',
       body: formDataWithImage,
     });

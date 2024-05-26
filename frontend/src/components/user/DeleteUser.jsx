@@ -9,8 +9,6 @@ const DeleteUser = () => {
   const [userIds, setUserIds] = useState([]);
   const [errors, setErrors] = useState('');
 
-  const userIdRegex = /^[a-z0-9]{24}$/;
-
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -33,13 +31,6 @@ const DeleteUser = () => {
 
   const handleChange = (e) => {
     const { value } = e.target;
-    // if (!userIdRegex.test(value)) {
-    //   setErrors(
-    //     'Assigned user ID must be 24 characters long and contain only lowercase letters (a-z) and digits (0-9)'
-    //   );
-    // } else {
-    //   setErrors('');
-    // }
     setEmail(value);
   };
 
@@ -57,7 +48,7 @@ const DeleteUser = () => {
     }
     } catch (error) {
       console.error('Failed to remove user:', error);
-      toast.error('Cannot delete user as the user is assigned to one or more campaigns.');
+      toast.error('Cannot delete user as the user is assigned or enrolled to one or more campaigns.');
     }
   };
 
@@ -70,7 +61,7 @@ const DeleteUser = () => {
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                  <label htmlFor="userId">User ID:</label>
+                  <label htmlFor="userId">User Email:</label>
                   <select
                     className={`form-control ${errors && 'is-invalid'}`}
                     id="userId"
@@ -79,7 +70,7 @@ const DeleteUser = () => {
                     maxLength={24}
                     required
                   >
-                    <option value="">Select User ID</option>
+                    <option value="">Select User Email</option>
                     {userIds.map(id => (
                       <option key={id} value={id}>{id}</option>
                     ))}

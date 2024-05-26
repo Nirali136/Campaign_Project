@@ -4,7 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const MainLayout = (props) =>{
     return(
-        <Container className='mt-5 mb-5'>
+        <Container>
             {props.children}
             <ToastContainer/>
         </Container>
